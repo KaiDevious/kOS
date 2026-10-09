@@ -100,6 +100,64 @@ chsh -s "$(which zsh)" "$U" 2>/dev/null || true
 say "8/8  App-menu icon"
 cp "$ASSETS/logo-dark.png" /usr/share/icons/hicolor/256x256/apps/kos.png 2>/dev/null || true
 
+say "GRUB boot menu branding"
+cp /etc/default/grub /etc/default/grub.kosbak 2>/dev/null || true
+cp "$ASSETS/splash.png" /usr/share/kos/grub-bg.png 2>/dev/null || true
+sed -i 's|^GRUB_DISTRIBUTOR=.*|GRUB_DISTRIBUTOR="kOS"|' /etc/default/grub
+grep -q '^GRUB_DISTRIBUTOR' /etc/default/grub || echo 'GRUB_DISTRIBUTOR="kOS"' >> /etc/default/grub
+grep -q '^GRUB_BACKGROUND' /etc/default/grub \
+  && sed -i 's|^GRUB_BACKGROUND=.*|GRUB_BACKGROUND="/usr/share/kos/grub-bg.png"|' /etc/default/grub \
+  || echo 'GRUB_BACKGROUND="/usr/share/kos/grub-bg.png"' >> /etc/default/grub
+grep -q '^GRUB_TIMEOUT_STYLE' /etc/default/grub && sed -i 's/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=menu/' /etc/default/grub || echo 'GRUB_TIMEOUT_STYLE=menu' >> /etc/default/grub
+sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=3/' /etc/default/grub
+grep -q 'splash' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 splash"/' /etc/default/grub
+update-grub >/dev/null 2>&1 || true
+
+say "Plymouth boot splash"
+apt-get install -y plymouth plymouth-label >/dev/null 2>&1 || true
+mkdir -p /usr/share/plymouth/themes/kos
+cp "$ASSETS/logo-dark.png" /usr/share/plymouth/themes/kos/logo.png 2>/dev/null || true
+cat > /usr/share/plymouth/themes/kos/kos.plymouth <<'PLY'
+[Plymouth Theme]
+Name=kOS
+Description=kOS boot splash
+ModuleName=script
+[script]
+ImageDir=/usr/share/plymouth/themes/kos
+ScriptFile=/usr/share/plymouth/themes/kos/kos.script
+PLY
+cat > /usr/share/plymouth/themes/kos/kos.script <<'PLY'
+Window.SetBackgroundTopColor(0.031,0.043,0.063);
+Window.SetBackgroundBottomColor(0.016,0.024,0.051);
+logo.image = Image("logo.png");
+logo.sprite = Sprite(logo.image);
+tick = 0;
+fun refresh(){
+  tick++;
+  logo.sprite.SetX(Window.GetWidth()/2 - logo.image.GetWidth()/2);
+  logo.sprite.SetY(Window.GetHeight()/2 - logo.image.GetHeight()/2);
+  logo.sprite.SetOpacity(0.8 + 0.2 * Math.Sin(tick/25));
+}
+Plymouth.SetRefreshFunction(refresh);
+PLY
+update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/kos/kos.plymouth 200 >/dev/null 2>&1 || true
+update-alternatives --set default.plymouth /usr/share/plymouth/themes/kos/kos.plymouth >/dev/null 2>&1 || true
+update-initramfs -u >/dev/null 2>&1 || true
+
+say "Apps: Windows (Wine) + Apple file support"
+dpkg --add-architecture i386 >/dev/null 2>&1 || true
+apt-get update >/dev/null 2>&1 || true
+apt-get install -y wine wine64 >/dev/null 2>&1 || true
+apt-get install -y wine32:i386 >/dev/null 2>&1 || true
+if ! command -v winetricks >/dev/null 2>&1; then
+  apt-get install -y cabextract >/dev/null 2>&1 || true
+  wget -qO /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && chmod +x /usr/local/bin/winetricks
+fi
+apt-get install -y libimobiledevice-utils usbmuxd ifuse kio-extras \
+  libheif1 libheif-plugin-libde265 heif-thumbnailer \
+  ffmpeg gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly 7zip hfsprogs >/dev/null 2>&1 || true
+apt-get install -y kimageformat-plugins >/dev/null 2>&1 || apt-get install -y kimageformatplugins >/dev/null 2>&1 || true
+
 echo
 echo "============================================================"
 echo " kOS system setup done. Reboot, then finish the 3 GUI steps:"
