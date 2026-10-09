@@ -29,10 +29,19 @@ cd kOS && sudo bash scripts/kos-setup.sh
 ```
 Reboot, then set the wallpaper, pick a Breeze Dark/Light global theme, and set the accent color.
 
+**Add kOS to an existing Kali (package):** grab `kos-desktop_1.0.0.deb` from [Releases](https://github.com/KaiDevious/kOS/releases) (or `packaging/`), then:
+```bash
+sudo apt install ./kos-desktop_1.0.0.deb
+sudo kos-setup
+```
+Two commands turn a fresh Kali + KDE into kOS — it installs the branding, the broadcaster, and pulls in the apps (Wine, fastfetch, Papirus, etc.). Edit your broadcast settings in `/etc/kos/config`.
+
 ## Repo layout
 ```
-branding/   wallpapers, logos, boot splash, login screen, terminal logo
-scripts/    kos-setup.sh — applies the whole kOS look + tweaks
+branding/    wallpapers, logos, boot splash, login screen, terminal logo
+scripts/     kos-setup.sh — applies the whole kOS look + tweaks
+installer/   Calamares + boot-menu branding for the ISO
+packaging/   kos-desktop .deb (branding + broadcaster + kos-setup)
 docs/        build notes
 ```
 
