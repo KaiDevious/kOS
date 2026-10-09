@@ -2,51 +2,73 @@ im still lazy so thanks claude for writing this
 
 # kOS
 
-A custom Linux distribution built on **Kali** with **KDE Plasma** — made to run *your* stuff and look clean doing it.
+A custom Linux distribution built on **Kali** with the **KDE Plasma** desktop. It runs your Windows apps, opens your Apple files, comes with security tools, and has its own clean look.
 
-> ⚠️ kOS is a personal project, built for fun and learning. It's based on Kali, so it ships security tools — use them only on systems you own or have permission to test.
+**Note:** kOS is a personal project made for fun and learning. Because it's based on Kali, it includes security tools. Only use those on devices and networks you own or have permission to test.
 
 ## What it does
-- 🪟 **Runs Windows apps** — via Wine, your `.exe` files just work
-- 🍎 **Plays nice with Apple** — opens iPhone photos (HEIC) and Mac files out of the box
-- 🛡️ **Security toolkit built in** — the full Kali tool set (nmap, Wireshark, Burp, Ghidra, and more)
-- 🔔 **Broadcast system** — a built-in message-of-the-day and update notifications I can push to every kOS machine ([how it works](https://github.com/KaiDevious/kos-motd-notif-sender))
-- 🎨 **Custom look** — dark *and* light themes, custom wallpaper, boot splash, login screen, and terminal logo
-- ⚡ **Quality-of-life tweaks** — no annoying system beep, reliable auto-networking, colored terminal
+
+- **Runs Windows apps.** Wine is built in, so most `.exe` files work.
+- **Works with Apple files.** Opens iPhone photos (HEIC) and common Mac file types.
+- **Has security tools built in.** The Kali tool set (nmap, Wireshark, Burp, Ghidra, and more).
+- **Can send announcements.** A built-in message-of-the-day and pop-up notifications, controlled from one place. ([how it works](https://github.com/KaiDevious/kos-motd-notif-sender))
+- **Looks custom.** Dark and light themes, plus a matching wallpaper, boot screen, login screen, and terminal logo.
+- **Small quality-of-life fixes.** No system beep, reliable networking, and a colored terminal.
 
 ## Screenshots
+
 | Dark | Light |
 |------|-------|
 | ![dark](branding/wallpaper-dark.png) | ![light](branding/wallpaper-light.png) |
 
-## Install
-**Easiest:** grab `kOS.iso` from the [Releases](https://github.com/KaiDevious/kOS/releases) page and install it in a VM or on real hardware.
+## How to install
 
-**Build it yourself:** install Kali with KDE, then:
-```bash
-git clone https://github.com/KaiDevious/kOS
-cd kOS && sudo bash scripts/kos-setup.sh
-```
-Reboot, then set the wallpaper, pick a Breeze Dark/Light global theme, and set the accent color.
+Pick whichever fits you.
 
-**Add kOS to an existing Kali (package):** grab `kos-desktop_1.0.0.deb` from [Releases](https://github.com/KaiDevious/kOS/releases) (or `packaging/`), then:
-```bash
-sudo apt install ./kos-desktop_1.0.0.deb
-sudo kos-setup
-```
-Two commands turn a fresh Kali + KDE into kOS — it installs the branding, the broadcaster, and pulls in the apps (Wine, fastfetch, Papirus, etc.). Edit your broadcast settings in `/etc/kos/config`.
+### Option 1 — Install the full kOS (easiest)
 
-## Repo layout
+1. Download `kOS.iso` from the [Releases](https://github.com/KaiDevious/kOS/releases) page.
+2. Install it like any Linux ISO, in a virtual machine or on a real computer.
+
+### Option 2 — Add kOS to a Kali you already have
+
+1. Install Kali and choose the **KDE Plasma** desktop.
+2. Download `kos-desktop_1.0.0.deb` from [Releases](https://github.com/KaiDevious/kOS/releases) (or the `packaging/` folder).
+3. Open a terminal where the file is and run:
+   ```bash
+   sudo apt install ./kos-desktop_1.0.0.deb
+   sudo kos-setup
+   ```
+4. Reboot.
+
+That's it. The package installs the kOS look, the announcement tools, and the apps it needs. To change the announcement settings later, edit `/etc/kos/config`.
+
+### Option 3 — Build it yourself from the source
+
+1. Install Kali with the **KDE Plasma** desktop.
+2. Run:
+   ```bash
+   git clone https://github.com/KaiDevious/kOS
+   cd kOS
+   sudo bash scripts/kos-setup.sh
+   ```
+3. Reboot.
+4. Finish the look: right-click the desktop to set the wallpaper, then open System Settings to pick a Breeze Dark or Light theme and set the accent color.
+
+## What's in this repo
+
 ```
-branding/    wallpapers, logos, boot splash, login screen, terminal logo
-scripts/     kos-setup.sh — applies the whole kOS look + tweaks
-installer/   Calamares + boot-menu branding for the ISO
-packaging/   kos-desktop .deb (branding + broadcaster + kos-setup)
-docs/        build notes
+branding/    wallpapers, logos, boot screen, login screen, terminal logo
+scripts/     kos-setup.sh — applies the whole kOS look and tweaks
+installer/   the installer and boot-menu branding used to build the ISO
+packaging/   kos-desktop.deb — branding, announcement tools, and kos-setup in one package
+docs/        notes on how kOS is built
 ```
 
 ## Credits
-Built by **Kai**. Based on [Kali Linux](https://www.kali.org/) and [KDE Plasma](https://kde.org/). ISO built with [penguins-eggs](https://penguins-eggs.net/).
+
+Built by Kai. Based on [Kali Linux](https://www.kali.org/) and [KDE Plasma](https://kde.org/). The ISO is built with [penguins-eggs](https://penguins-eggs.net/).
 
 ## License
-Original kOS code, scripts, and configs: **GPL-3.0** (see [`LICENSE`](LICENSE)). Bundled software keeps its own licenses. The **kOS name and logo** are not covered — please don't ship a modified build as "kOS."
+
+The kOS code, scripts, and configs are **GPL-3.0** (see [`LICENSE`](LICENSE)). The software kOS bundles keeps its own licenses. The kOS name and logo are not covered by that license — please don't ship a modified build and call it "kOS."
