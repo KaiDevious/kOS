@@ -1,3 +1,5 @@
+im still lazy so thanks claude for writing this
+
 # kOS
 
 A custom Linux distribution built on **Kali** with **KDE Plasma** — made to run *your* stuff and look clean doing it.
