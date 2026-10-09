@@ -99,6 +99,7 @@ chsh -s "$(which zsh)" "$U" 2>/dev/null || true
 
 say "8/8  App-menu icon + icon theme"
 cp "$ASSETS/logo-dark.png" /usr/share/icons/hicolor/256x256/apps/kos.png 2>/dev/null || true
+cp "$ASSETS/menu-icon.png" /usr/share/icons/hicolor/256x256/apps/kos-menu.png 2>/dev/null || true
 apt-get install -y papirus-icon-theme >/dev/null 2>&1 || true
 grep -q 'Theme=Papirus-Dark' /etc/xdg/kdeglobals 2>/dev/null || printf '\n[Icons]\nTheme=Papirus-Dark\n' >> /etc/xdg/kdeglobals
 
