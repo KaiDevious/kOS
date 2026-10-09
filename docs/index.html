@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>kOS</title>
+<meta name="description" content="A custom Linux distribution built on Kali with KDE Plasma — runs Windows apps, opens Apple files, ships security tools.">
+<link rel="icon" type="image/png" href="img/menu-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap">
+<style>
+  :root{
+    --bg:#080A0F; --surface:#0E131B; --surface2:#131A25; --border:#1E2836;
+    --fg:#E7EEF6; --muted:#8694A6; --faint:#5C6878;
+    --lb:#86C8FF; --blue:#2C62CF; --navy:#16306e;
+    --display:'Sora',system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--lb);text-decoration:none}
+  .wrap{width:100%;max-width:1040px;margin:0 auto;padding-inline:20px}
+  img{max-width:100%;display:block}
+
+  /* top bar */
+  header{position:sticky;top:0;z-index:10;background:rgba(8,10,15,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .nav .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:20px}
+  .nav .brand img{width:28px;height:28px;border-radius:7px}
+  .nav a.ghlink{color:var(--muted);font-size:14px}
+
+  /* hero */
+  .hero{text-align:center;padding-block:84px 72px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 50% at 50% 38%, rgba(44,98,207,.22), transparent 70%);pointer-events:none}
+  .kmark{font-family:var(--display);font-weight:800;font-size:clamp(84px,18vw,168px);line-height:.9;letter-spacing:-.03em;
+    background:linear-gradient(170deg,var(--lb) 0%,var(--blue) 60%,var(--navy) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.tag{color:var(--fg);font-size:clamp(18px,3.5vw,24px);margin-top:16px;max-width:620px;margin-inline:auto;text-wrap:balance}
+  .hero p.sub{color:var(--muted);margin-top:10px}
+  .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+  .btn{font-family:var(--display);font-weight:600;font-size:15px;padding:13px 26px;border-radius:11px;border:1px solid transparent;transition:filter .15s,border-color .15s}
+  .btn-primary{background:linear-gradient(165deg,var(--blue),var(--navy));color:#fff}
+  .btn-primary:hover{filter:brightness(1.14)}
+  .btn-ghost{background:var(--surface);border-color:var(--border);color:var(--fg)}
+  .btn-ghost:hover{border-color:var(--faint)}
+
+  /* sections */
+  section{padding-block:56px}
+  h2{font-family:var(--display);font-weight:700;font-size:clamp(24px,5vw,32px);letter-spacing:-.01em;margin-bottom:8px;text-wrap:balance}
+  .lead{color:var(--muted);margin-bottom:30px;max-width:620px}
+
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.features{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
+  .card h3{font-family:var(--display);font-weight:600;font-size:17px;margin-bottom:6px}
+  .card p{color:var(--muted);font-size:14.5px}
+
+  .shots{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:620px){.shots{grid-template-columns:1fr}}
+  .shot{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface)}
+  .shot img{width:100%;aspect-ratio:16/9;object-fit:cover}
+  .shot span{display:block;padding:10px 14px;color:var(--muted);font-size:13px;border-top:1px solid var(--border)}
+
+  .install{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.install{grid-template-columns:1fr}}
+  .step{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
+  .step .n{font-family:var(--display);font-weight:800;color:var(--blue);font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+  .step h3{font-family:var(--display);font-weight:600;font-size:17px;margin:6px 0 10px}
+  .step p{color:var(--muted);font-size:14px;margin-bottom:10px}
+  pre{background:#06090e;border:1px solid var(--border);border-radius:10px;padding:12px 14px;overflow-x:auto;font-size:12.5px;color:var(--fg)}
+  code{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+
+  .note{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:10px;padding:16px 18px;color:var(--muted);font-size:14px;margin-top:30px}
+
+  footer{border-top:1px solid var(--border);padding-block:34px;color:var(--faint);font-size:13.5px;text-align:center}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <span class="brand"><img src="img/menu-icon.png" alt="kOS logo">kOS</span>
+    <a class="ghlink" href="https://github.com/KaiDevious/kOS">View on GitHub</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="kmark">kOS</div>
+    <p class="tag">A custom Linux distribution that runs your stuff and looks clean doing it.</p>
+    <p class="sub">Built on Kali with the KDE Plasma desktop.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/KaiDevious/kOS/releases">Download</a>
+      <a class="btn btn-ghost" href="#install">How to install</a>
+    </div>
+  </div>
+</div>
+
+<section class="wrap">
+  <h2>What it does</h2>
+  <p class="lead">One system that handles Windows apps, Apple files, and security work — with its own look.</p>
+  <div class="features">
+    <div class="card"><h3>Runs Windows apps</h3><p>Wine is built in, so most .exe files just work.</p></div>
+    <div class="card"><h3>Works with Apple files</h3><p>Opens iPhone photos (HEIC) and common Mac file types.</p></div>
+    <div class="card"><h3>Security tools built in</h3><p>The Kali tool set — nmap, Wireshark, Burp, Ghidra, and more.</p></div>
+    <div class="card"><h3>Sends announcements</h3><p>A built-in message of the day and pop-up notifications.</p></div>
+    <div class="card"><h3>Custom look</h3><p>Dark and light themes, with a matching wallpaper, boot and login screen.</p></div>
+    <div class="card"><h3>Quality-of-life fixes</h3><p>No system beep, reliable networking, and a colored terminal.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>The look</h2>
+  <p class="lead">Dark and light, same identity.</p>
+  <div class="shots">
+    <div class="shot"><img src="img/wallpaper-dark.png" alt="kOS dark theme"><span>Dark</span></div>
+    <div class="shot"><img src="img/wallpaper-light.png" alt="kOS light theme"><span>Light</span></div>
+  </div>
+</section>
+
+<section class="wrap" id="install">
+  <h2>How to install</h2>
+  <p class="lead">Pick whichever fits you.</p>
+  <div class="install">
+    <div class="step">
+      <div class="n">Option 1</div>
+      <h3>Install the full kOS</h3>
+      <p>Download the ISO and install it in a virtual machine or on a real computer.</p>
+      <a class="btn btn-ghost" href="https://github.com/KaiDevious/kOS/releases">Get the ISO</a>
+    </div>
+    <div class="step">
+      <div class="n">Option 2</div>
+      <h3>Add kOS to Kali</h3>
+      <p>On a Kali install with KDE, run:</p>
+      <pre><code>sudo apt install ./kos-desktop_1.0.0.deb
+sudo kos-setup</code></pre>
+    </div>
+    <div class="step">
+      <div class="n">Option 3</div>
+      <h3>Build it yourself</h3>
+      <p>On Kali with KDE, run:</p>
+      <pre><code>git clone https://github.com/KaiDevious/kOS
+cd kOS
+sudo bash scripts/kos-setup.sh</code></pre>
+    </div>
+  </div>
+  <div class="note">
+    kOS is a personal project made for fun and learning. Because it's based on Kali, it includes security tools — only use those on devices and networks you own or have permission to test.
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built by Kai · Based on <a href="https://www.kali.org/">Kali Linux</a> and <a href="https://kde.org/">KDE Plasma</a> · <a href="https://github.com/KaiDevious/kOS">Source on GitHub</a><br>
+    kOS code is GPL-3.0. The kOS name and logo are not covered by that license.
+  </div>
+</footer>
+
+</body>
+</html>
