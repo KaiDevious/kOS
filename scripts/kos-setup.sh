@@ -3,6 +3,8 @@
 #   cd ~/kos-assets && sudo bash kos-setup.sh
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
+# assets live in ../branding when run from the repo, or beside the script in the flat kit
+ASSETS="$HERE"; [ -d "$HERE/../branding" ] && ASSETS="$(cd "$HERE/../branding" && pwd)"
 U="${SUDO_USER:-$USER}"
 UH="$(getent passwd "$U" | cut -d: -f6)"
 REPO="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
@@ -22,7 +24,7 @@ rmmod pcspkr 2>/dev/null || true
 say "3/8  fastfetch with the kOS logo"
 apt-get install -y fastfetch >/dev/null 2>&1 || true
 mkdir -p /usr/share/kos /etc/xdg/fastfetch
-cp "$HERE/kos-ascii.txt" /usr/share/kos/kos.txt
+cp "$ASSETS/kos-ascii.txt" /usr/share/kos/kos.txt
 cat > /etc/xdg/fastfetch/config.jsonc <<'JSON'
 {
   "logo": { "source": "/usr/share/kos/kos.txt", "type": "file", "color": { "1": "blue" } },
@@ -35,15 +37,15 @@ JSON
 
 say "4/8  Wallpapers (dark + light)"
 mkdir -p /usr/share/wallpapers/kOS/contents/images
-cp "$HERE/wallpaper-dark.png"  /usr/share/wallpapers/kOS/kos-dark.png
-cp "$HERE/wallpaper-light.png" /usr/share/wallpapers/kOS/kos-light.png
-cp "$HERE/wallpaper-dark.png"  /usr/share/wallpapers/kOS/contents/images/3840x2160.png
+cp "$ASSETS/wallpaper-dark.png"  /usr/share/wallpapers/kOS/kos-dark.png
+cp "$ASSETS/wallpaper-light.png" /usr/share/wallpapers/kOS/kos-light.png
+cp "$ASSETS/wallpaper-dark.png"  /usr/share/wallpapers/kOS/contents/images/3840x2160.png
 
 say "5/8  Login screen background (SDDM)"
 if [ -d /usr/share/sddm/themes/breeze ]; then
   rm -rf /usr/share/sddm/themes/kos
   cp -r /usr/share/sddm/themes/breeze /usr/share/sddm/themes/kos
-  cp "$HERE/login-dark.png" /usr/share/sddm/themes/kos/kos-login.png
+  cp "$ASSETS/login-dark.png" /usr/share/sddm/themes/kos/kos-login.png
   printf '[General]\nbackground=/usr/share/sddm/themes/kos/kos-login.png\ntype=image\n' > /usr/share/sddm/themes/kos/theme.conf.user
   mkdir -p /etc/sddm.conf.d
   printf '[Theme]\nCurrent=kos\n' > /etc/sddm.conf.d/zz-kos.conf
@@ -96,7 +98,7 @@ cp /etc/skel/.zshrc "$UH/.zshrc" 2>/dev/null && chown "$U:$U" "$UH/.zshrc"
 chsh -s "$(which zsh)" "$U" 2>/dev/null || true
 
 say "8/8  App-menu icon"
-cp "$HERE/logo-dark.png" /usr/share/icons/hicolor/256x256/apps/kos.png 2>/dev/null || true
+cp "$ASSETS/logo-dark.png" /usr/share/icons/hicolor/256x256/apps/kos.png 2>/dev/null || true
 
 echo
 echo "============================================================"
