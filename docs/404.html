@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>404 · kOS</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/kOS/img/menu-icon.png">
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:#000;color:#33ff66;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;overflow:hidden}
+  .scr{position:relative;z-index:3;padding:clamp(18px,4vw,40px);font-size:clamp(15px,2.2vw,18px);line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;
+       text-shadow:2px 0 rgba(255,0,60,.55),-2px 0 rgba(0,160,255,.55),0 0 8px rgba(51,255,102,.6);animation:jit 3.2s infinite steps(1)}
+  .big{display:block;font-size:clamp(64px,16vw,150px);font-weight:700;line-height:1;margin-bottom:18px;letter-spacing:.04em;animation:blink 2.4s infinite steps(1)}
+  .cur{animation:blink 1s steps(1) infinite}
+  .path{color:#9dffb6}
+  a.home{display:inline-block;margin-top:28px;padding:8px 16px;border:1px solid #33ff66;color:#33ff66;text-decoration:none;opacity:0;transition:opacity .4s}
+  a.home.show{opacity:1}
+  a.home:hover,a.home:focus-visible{background:#8dffa3;color:#003312;text-shadow:none;outline:none;box-shadow:0 0 18px rgba(141,255,163,.45)}
+  canvas,.fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+  canvas{z-index:4;opacity:.08;mix-blend-mode:screen;image-rendering:pixelated}
+  .scan{z-index:4;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}
+  .vig{z-index:2;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.8) 100%)}
+  .track{z-index:4;height:70px;top:-80px;bottom:auto;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.07) 40%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.07) 60%,transparent);animation:track 7s linear infinite}
+  .osd{position:fixed;z-index:5;color:#f2f2f2;font-size:clamp(16px,2.4vw,22px);letter-spacing:.08em;text-shadow:2px 2px 0 rgba(0,0,0,.6),1px 0 rgba(255,0,60,.5),-1px 0 rgba(0,160,255,.5)}
+  .osd.tr{top:18px;right:24px}.osd.bl{bottom:18px;left:24px;line-height:1.3}.osd.br{bottom:18px;right:24px}
+  @keyframes blink{50%{opacity:0}}
+  @keyframes track{to{transform:translateY(calc(100vh + 160px))}}
+  @keyframes jit{0%,100%{transform:none}12%{transform:translateX(1px)}13%{transform:translateX(-2px) skewX(-1deg)}14%{transform:none}57%{transform:translateX(-1px)}58%{transform:translateX(3px)}59%{transform:none}}
+  @media(prefers-reduced-motion:reduce){.scr,.track,.big{animation:none}}
+</style>
+</head>
+<body>
+<div class="scr" id="scr"><span class="big">404</span><span id="txt"></span><span class="cur">_</span>
+<a class="home" id="home" href="/kOS/">go back to kOS</a></div>
+<canvas id="noise" width="200" height="120" aria-hidden="true"></canvas>
+<div class="fx scan" aria-hidden="true"></div><div class="fx track" aria-hidden="true"></div><div class="fx vig" aria-hidden="true"></div>
+<div class="osd tr" aria-hidden="true">STOP &#9632;</div><div class="osd br" aria-hidden="true">SP</div><div class="osd bl" id="clock" aria-hidden="true"></div>
+<script>
+(function(){
+  var still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // static
+  var cv=document.getElementById('noise'),cx=cv.getContext('2d'),im=cx.createImageData(200,120);
+  (function n(){for(var i=0;i<im.data.length;i+=4){var v=Math.random()*255|0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}cx.putImageData(im,0,0);if(!still)setTimeout(n,70)})();
+  // camcorder clock
+  var M=['JAN.','FEB.','MAR.','APR.','MAY','JUN.','JUL.','AUG.','SEP.','OCT.','NOV.','DEC.'];
+  (function tick(){var d=new Date(),h=d.getHours(),ap=h<12?'AM':'PM';h=h%12||12;function z(x){return(x<10?'0':'')+x}
+    document.getElementById('clock').innerHTML=ap+' '+h+':'+z(d.getMinutes())+':'+z(d.getSeconds())+'<br>'+M[d.getMonth()]+' '+z(d.getDate())+' '+d.getFullYear();setTimeout(tick,1000)})();
+  // the message
+  var txt=document.getElementById('txt'),path=decodeURIComponent(location.pathname).slice(0,80);
+  var lines=['THIS PAGE ISN\'T HERE...','\n',path+' WAS NEVER RECORDED.','\n\n','...OR MAYBE IT WAS. AND SOMEONE TAPED OVER IT.'];
+  var i=0;
+  function type(str,done){var k=0;(function n(){if(k<str.length){txt.textContent+=str[k++];setTimeout(n,still?0:38)}else done()})()}
+  (function next(){if(i<lines.length){var l=lines[i++];if(l.trim()==='')txt.textContent+=l,setTimeout(next,still?0:500);else type(l,function(){setTimeout(next,still?0:300)})}
+    else document.getElementById('home').classList.add('show')})();
+})();
+</script>
+</body>
+</html>

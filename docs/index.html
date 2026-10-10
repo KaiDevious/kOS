@@ -235,6 +235,9 @@
   footer{border-top:1px solid var(--border);padding-block:34px;color:var(--faint);font-size:13.5px;text-align:center}
   footer a{color:var(--muted)}
 
+  /* rain falling out of the wordmark */
+  .rain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+  .hero>.wrap{position:relative;z-index:1}
   /* ===== v3: motion + detail ===== */
   h1,h2,h3{font-family:var(--display)}
   h2{font-weight:650;letter-spacing:-.025em}
@@ -349,6 +352,7 @@
 </header>
 
 <div class="hero" id="hero">
+  <canvas class="rain" id="rain" aria-hidden="true"></canvas>
   <div class="wrap">
     <pre class="boot" id="boot" aria-hidden="true"></pre>
     <h1 class="kmark" id="kmark">kOS</h1>
@@ -393,8 +397,8 @@
   <h2>The look</h2>
   <p class="lead">Dark and light, same identity. Drag across to compare.</p>
   <div class="cmp" id="cmp" style="--pos:50%">
-    <img src="img/wallpaper-dark.png" alt="kOS dark wallpaper" draggable="false">
-    <div class="cmp-top"><img src="img/wallpaper-light.png" alt="kOS light wallpaper" draggable="false"></div>
+    <img src="img/wallpaper-dark.webp" alt="kOS dark wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async">
+    <div class="cmp-top"><img src="img/wallpaper-light.webp" alt="kOS light wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async"></div>
     <input type="range" min="0" max="100" value="50" step="0.5" aria-label="Slide between the dark and light wallpaper">
     <span class="cmp-line" aria-hidden="true"><span class="cmp-knob"></span></span>
     <span class="cmp-tag l" aria-hidden="true">Dark</span><span class="cmp-tag r" aria-hidden="true">Light</span>
@@ -482,7 +486,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   </div>
 
   <figure class="figure">
-    <img src="img/installer.png" alt="The kOS installer" onerror="this.parentElement.classList.add('missing')">
+    <img src="img/installer.png" loading="lazy" decoding="async" alt="The kOS installer" onerror="this.parentElement.classList.add('missing')">
     <span>The kOS installer</span>
   </figure>
 
@@ -535,7 +539,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
         <div class="day">Oct 10</div>
         <ul>
           <li><b>No more beeping.</b> Switched audio from PipeWire to PulseAudio.</li>
-          <li><b>Website redesign:</b> boot intro, a dark/light compare slider, copy buttons, smoother everything.</li>
+          <li><b>Website redesign:</b> rain from the logo, boot intro, a dark/light compare slider, copy buttons, 10x lighter images.</li>
           <li><b>Website:</b> install guide, live MOTD, terminal, and a light theme.</li>
           <li><b>ISO:</b> installs keep your theme without copying personal settings.</li>
         </ul>
@@ -635,7 +639,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     uptime:function(){var s=Math.floor((Date.now()-started)/1000);return 'up '+Math.floor(s/60)+' min, '+(s%60)+' sec'},
     echo:function(a){return esc(a.join(' '))},
     theme:function(a){var t=a[0];
-      if(t==='burn')return '<img class="burn" src="img/burn.png" alt="two eyes shooting golden beams"><span class="t-y">this is what light mode does to you.</span>';
+      if(t==='burn')return '<img class="burn" src="img/burn.webp" alt="two eyes shooting golden beams"><span class="t-y">this is what light mode does to you.</span>';
       if(t==='april'){
         locked=true;
         out.innerHTML='<img class="april" src="img/april.png" alt="">';
@@ -1102,6 +1106,68 @@ sudo bash scripts/kos-setup.sh</code></pre>
       },function(){b.textContent='Select it';setTimeout(function(){b.textContent='Copy'},1600)});
     });
   });
+})();
+</script>
+<script>
+/* the kOS wordmark is a cloud: rain falls out of the bottom of the letters, forever */
+(function(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var hero=document.getElementById('hero'),cv=document.getElementById('rain'),mark=document.getElementById('kmark');
+  if(!cv||!cv.getContext)return;
+  var cx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1),W=0,H=0,spouts=[],drops=[],rings=[],floor=0,visible=true,raf=0,last=0,acc=0;
+  var colA='#7FBDF2',colB='#2C62CF';
+  function readColors(){var cs=getComputedStyle(document.documentElement);colA=cs.getPropertyValue('--mark-a').trim()||colA;colB=cs.getPropertyValue('--blue').trim()||colB}
+  // find the underside of every letter column by drawing the wordmark offscreen
+  function measure(){
+    var hr=hero.getBoundingClientRect(),mr=mark.getBoundingClientRect();
+    W=hr.width;H=hr.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cx.setTransform(dpr,0,0,dpr,0,0);
+    floor=H-24;
+    var cs=getComputedStyle(mark),off=document.createElement('canvas'),w=Math.ceil(mr.width),h=Math.ceil(mr.height);
+    if(!w||!h)return;
+    off.width=w;off.height=h;var o=off.getContext('2d');
+    o.font=cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;o.textBaseline='alphabetic';o.textAlign='center';
+    try{o.letterSpacing=cs.letterSpacing}catch(e){}
+    var m=o.measureText('kOS'),base=(h+m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2;
+    o.fillStyle='#000';o.fillText('kOS',w/2,base);
+    var data=o.getImageData(0,0,w,h).data;spouts=[];
+    for(var x=0;x<w;x+=3){for(var y=h-1;y>=0;y--){if(data[(y*w+x)*4+3]>140){spouts.push({x:mr.left-hr.left+x,y:mr.top-hr.top+y});break}}}
+  }
+  function spawn(){
+    if(!spouts.length)return;
+    var s=spouts[(Math.random()*spouts.length)|0];
+    drops.push({x:s.x+(Math.random()-.5)*2,y:s.y,v:.6+Math.random()*1.2,len:8+Math.random()*16,w:Math.random()<.2?1.6:1,c:Math.random()<.5?0:1,a:.35+Math.random()*.45});
+  }
+  function frame(t){
+    raf=0;if(!visible)return;
+    var dt=Math.min(50,t-(last||t));last=t;
+    acc+=dt*(W/1000)*.11;            // rain density scales with width
+    while(acc>1){spawn();acc--}
+    cx.clearRect(0,0,W,H);cx.lineCap='round';
+    for(var i=drops.length-1;i>=0;i--){
+      var d=drops[i];d.v+=.018*dt;d.y+=d.v*dt*.06;
+      var fade=Math.max(0,Math.min(1,(floor-d.y)/(H*.35)));
+      if(d.y>=floor){if(Math.random()<.35)rings.push({x:d.x,r:1,a:.35});drops.splice(i,1);continue}
+      cx.strokeStyle=d.c?colB:colA;cx.globalAlpha=d.a*fade;cx.lineWidth=d.w;
+      cx.beginPath();cx.moveTo(d.x,d.y-d.len);cx.lineTo(d.x,d.y);cx.stroke();
+    }
+    for(var j=rings.length-1;j>=0;j--){
+      var r=rings[j];r.r+=dt*.03;r.a-=dt*.0012;if(r.a<=0){rings.splice(j,1);continue}
+      cx.globalAlpha=r.a;cx.strokeStyle=colA;cx.lineWidth=1;cx.beginPath();cx.ellipse(r.x,floor,r.r*3,r.r*.8,0,0,Math.PI*2);cx.stroke();
+    }
+    cx.globalAlpha=1;
+    raf=requestAnimationFrame(frame);
+  }
+  function start(){if(!raf&&visible&&!document.hidden){last=0;raf=requestAnimationFrame(frame)}}
+  // pause when the hero is off screen or the tab is hidden
+  if('IntersectionObserver' in window)new IntersectionObserver(function(es){visible=es[0].isIntersecting;start()}).observe(hero);
+  document.addEventListener('visibilitychange',start);
+  var rz;addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(measure,150)});
+  new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  function go(){readColors();measure();
+    // let the boot intro finish before it starts to rain
+    (function wait(){if(document.documentElement.classList.contains('booting'))return setTimeout(wait,120);setTimeout(function(){measure();start()},1000)})();
+  }
+  (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(go);
 })();
 </script>
 </body>
