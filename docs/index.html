@@ -36,19 +36,19 @@
   }
   :root[data-theme="glass"]{
     /* Liquid Glass: frosted translucent panels over a living gradient */
-    --bg:#0A1430; --surface:rgba(255,255,255,.10); --surface2:rgba(255,255,255,.16); --border:rgba(255,255,255,.22);
-    --fg:#F3F7FF; --muted:#C7D4EC; --faint:#93A4C6;
-    --lb:#BCE0FF; --blue:#5B8DEF; --navy:#2a4fb0;
-    --mark-a:#E9F4FF; --headbg:rgba(255,255,255,.1); --glow:rgba(120,170,255,.28);
+    --bg:#16181C; --surface:rgba(255,255,255,.08); --surface2:rgba(255,255,255,.14); --border:rgba(255,255,255,.2);
+    --fg:#EEF0F3; --muted:#BFC4CC; --faint:#878C96;
+    --lb:#D8DCE3; --blue:#9AA1AD; --navy:#5a606b;
+    --mark-a:#F2F4F7; --headbg:rgba(255,255,255,.08); --glow:rgba(200,206,216,.22);
     color-scheme:dark;
   }
   :root[data-theme="glass"] body{
     background:
-      radial-gradient(60% 55% at 18% 12%, rgba(120,90,255,.55), transparent 60%),
-      radial-gradient(55% 50% at 85% 20%, rgba(60,180,255,.5), transparent 60%),
-      radial-gradient(60% 60% at 70% 90%, rgba(255,90,170,.42), transparent 60%),
-      radial-gradient(50% 50% at 10% 85%, rgba(50,220,190,.4), transparent 60%),
-      #0A1430;
+      radial-gradient(60% 55% at 18% 12%, rgba(255,255,255,.14), transparent 60%),
+      radial-gradient(55% 50% at 85% 20%, rgba(180,186,198,.16), transparent 60%),
+      radial-gradient(60% 60% at 70% 90%, rgba(120,126,138,.2), transparent 60%),
+      radial-gradient(50% 50% at 10% 85%, rgba(210,214,222,.1), transparent 60%),
+      #16181C;
     background-attachment:fixed;background-size:200% 200%;animation:glassFlow 24s ease-in-out infinite}
   @keyframes glassFlow{0%,100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%}50%{background-position:30% 20%,70% 30%,60% 70%,20% 60%}}
   :root[data-theme="glass"] header,:root[data-theme="glass"] .card,:root[data-theme="glass"] .step,
@@ -63,7 +63,7 @@
     box-shadow:0 8px 32px rgba(10,15,40,.3),inset 0 1px 0 rgba(255,255,255,.22)}
   :root[data-theme="glass"] .hero p.tag,:root[data-theme="glass"] .hero p.sub,
   :root[data-theme="glass"] h2,:root[data-theme="glass"] .lead{text-shadow:0 1px 20px rgba(10,15,40,.4)}
-  :root[data-theme="glass"] .btn-primary{box-shadow:0 8px 28px rgba(44,98,207,.45),inset 0 1px 0 rgba(255,255,255,.3)}
+  :root[data-theme="glass"] .btn-primary{background:linear-gradient(165deg,#6b7280,#3a3f47);box-shadow:0 8px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.3)}
   body,header,.card,.step,.shot,.req,.note,.faq details{transition:background-color .25s,border-color .25s,color .25s}
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -315,7 +315,7 @@
   .kmark{--mx:50%;--my:40%;background:radial-gradient(220px circle at var(--mx) var(--my),rgba(232,244,255,.95),rgba(232,244,255,0) 62%),linear-gradient(170deg,var(--mark-a) 0%,var(--blue) 60%,var(--navy) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(96px,20vw,196px);padding-bottom:.04em}
   :root[data-theme="light"] .kmark{background:radial-gradient(220px circle at var(--mx) var(--my),rgba(255,255,255,.75),rgba(255,255,255,0) 62%),linear-gradient(170deg,var(--mark-a) 0%,var(--blue) 60%,var(--navy) 100%);-webkit-background-clip:text;background-clip:text}
   :root[data-theme="warm"] .kmark{background:radial-gradient(220px circle at var(--mx) var(--my),rgba(255,243,220,.95),rgba(255,243,220,0) 62%),linear-gradient(170deg,var(--mark-a) 0%,var(--blue) 60%,var(--navy) 100%);-webkit-background-clip:text;background-clip:text}
-  :root[data-theme="glass"] .kmark{filter:drop-shadow(0 6px 30px rgba(120,170,255,.5))}
+  :root[data-theme="glass"] .kmark{filter:drop-shadow(0 6px 30px rgba(220,224,232,.4))}
 
   /* boot sequence (first visit per session) */
   .boot{position:absolute;left:50%;top:84px;transform:translateX(-50%);width:min(560px,calc(100% - 32px));margin:0;text-align:left;font:12.5px/1.7 var(--mono);color:var(--muted);white-space:pre-wrap;pointer-events:none;opacity:0}
