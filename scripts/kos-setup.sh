@@ -59,7 +59,7 @@ apt-get install -y curl libnotify-bin >/dev/null 2>&1 || true   # notify-send
 # MOTD for login/SSH shells
 cat > /etc/profile.d/kos-motd.sh <<EOF2
 case \$- in *i*)
-  curl -fsS --max-time 2 "$REPO/message.txt?t=\$(date +%s)" 2>/dev/null && echo ;;
+  curl -4 -fsS --max-time 6 "$REPO/message.txt?t=\$(date +%s)" 2>/dev/null && echo ;;
 esac
 EOF2
 # also show in Konsole (non-login) via bash.bashrc
