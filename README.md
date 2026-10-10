@@ -1,4 +1,4 @@
-im still lazy so thanks claude for writing this
+im still lazy so thanks claude for writing this (claude wrote this all so then i can create an installer)
 
 # kOS
 
