@@ -572,29 +572,18 @@ sudo bash scripts/kos-setup.sh</code></pre>
     // intro: HELLO...?  [enter]  IS ANYBODY THERE...?
     var ready=false;
     function typeOut(str,done,ms){var i=0;(function n(){if(i<str.length){txt.textContent+=str[i++];setTimeout(n,ms||70)}else if(done)done()})()}
-    function say(str){
-      try{
-        var u=new SpeechSynthesisUtterance(str);u.rate=0.5;u.pitch=0.1;u.volume=1;
-        var vs=speechSynthesis.getVoices().filter(function(v){return /^en/i.test(v.lang)});
-        var deep=vs.filter(function(v){return /male|david|daniel|fred|alex|george/i.test(v.name)});
-        if(deep.length)u.voice=deep[0];else if(vs.length)u.voice=vs[0];
-        speechSynthesis.cancel();speechSynthesis.speak(u);
-      }catch(err){}
-    }
     var stage=0;
     function reply(line){
       var w=line.trim();
       if(stage===0&&/^yes\b/i.test(w)){
         stage=1;ready=false;
         setTimeout(function(){
-          say('who?');
           typeOut('WHO?',function(){setTimeout(function(){txt.textContent+='\n';click();ready=true},900)},650);
         },1500);
       }else if(stage===1&&w){
         stage=2;ready=false;
         var name=w.toUpperCase().slice(0,40);
         setTimeout(function(){
-          say('hello, '+w+'.');
           typeOut('HELLO '+name+'.',function(){setTimeout(function(){txt.textContent+='\n';click();ready=true},900)},260);
         },1500);
       }
