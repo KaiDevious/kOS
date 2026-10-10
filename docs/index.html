@@ -192,6 +192,20 @@
     background:repeating-linear-gradient(to bottom,rgba(255,255,255,.012) 0 1px,transparent 1px 3px),radial-gradient(120% 60% at 50% 120%,rgba(95,215,255,.07),transparent 70%)}
   .term::selection,.term *::selection{background:rgba(95,215,255,.28)}
   .term .ln{display:flex;gap:0;white-space:pre}
+  .term-slot{min-height:0}
+  .bar-btn{margin-left:auto;z-index:3;position:relative;width:26px;height:22px;display:grid;place-items:center;border:0;background:rgba(255,255,255,.06);border-radius:7px;color:#7f8ea1;cursor:pointer;padding:0}
+  .bar-btn:hover{color:#dfe7f1;background:rgba(255,255,255,.12)}
+  .bar-btn svg{width:13px;height:13px}
+  /* floating / detached terminal */
+  .term.float{position:fixed;z-index:9000;top:auto;left:auto;right:20px;bottom:20px;width:min(560px,calc(100vw - 32px));height:440px;display:flex;flex-direction:column;
+    resize:both;overflow:hidden;min-width:300px;min-height:220px;max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);
+    box-shadow:0 40px 90px -24px rgba(0,0,0,.75),0 0 0 1px rgba(0,0,0,.4)}
+  .term.float .bar{cursor:move;touch-action:none;user-select:none}
+  .term.float .out{height:auto;flex:1}
+  .term.float::after{top:41px}
+  .term-slot.empty{min-height:0}
+  .term-docknote{color:var(--muted);font-size:14px;border:1px dashed var(--border);border-radius:12px;padding:16px;text-align:center;background:var(--surface)}
+  .linklike{background:none;border:0;color:var(--lb);cursor:pointer;font:inherit;text-decoration:underline;padding:0}
   :root[data-theme="light"] .shot img,:root[data-theme="light"] .figure img{filter:brightness(.95)}
   .term .burn{display:block;width:100%;max-width:560px;border-radius:8px;margin:4px 0 6px}
   .chips[hidden],.term[hidden],.gone[hidden]{display:none}
@@ -509,10 +523,17 @@
 <section class="wrap" id="try">
   <h2>Try the kOS terminal</h2>
   <p class="lead">A pretend kOS terminal, right in your browser. Type <code>help</code> to see what it can do.</p>
-  <div class="term" id="term">
-    <div class="bar"><i></i><i></i><i></i><span id="tbar">you@kos: ~</span></div>
-    <div class="out" id="tout" aria-live="polite"></div>
+  <div class="term-slot" id="termSlot">
+    <div class="term" id="term">
+      <div class="bar"><i></i><i></i><i></i><span id="tbar">you@kos: ~</span>
+        <button class="bar-btn" id="termPop" type="button" title="Pop out / dock" aria-label="Pop out terminal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M21 3l-9 9M9 21H3v-6M3 21l9-9"/></svg>
+        </button>
+      </div>
+      <div class="out" id="tout" aria-live="polite"></div>
+    </div>
   </div>
+  <p class="term-docknote" id="termDockNote" hidden>Terminal popped out. <button class="linklike" id="termDock" type="button">Dock it back</button></p>
   <p class="gone" id="gone" hidden>[ terminal not found ]</p>
   <div class="chips" id="chips">
     <button class="chip">fastfetch</button><button class="chip">specs</button><button class="chip">motd</button><button class="chip">help</button><button class="chip">theme light</button><button class="chip">sudo rm -rf /</button>
@@ -1317,6 +1338,37 @@ sudo bash scripts/kos-setup.sh</code></pre>
         setTimeout(function(){term.classList.remove('on')},700)}},{threshold:.35});
       tio.observe(term);}
   }
+
+  /* detachable terminal: pop out to a floating, draggable, resizable window */
+  (function(){
+    var term=document.getElementById('term'),slot=document.getElementById('termSlot'),
+        pop=document.getElementById('termPop'),dock=document.getElementById('termDock'),note=document.getElementById('termDockNote'),
+        bar=term.querySelector('.bar'),floating=false;
+    function setFloat(on){
+      if(on===floating)return;floating=on;
+      if(on){document.body.appendChild(term);term.classList.add('float');note.hidden=false;slot.classList.add('empty');
+        // start bottom-right
+        term.style.left='';term.style.top='';term.style.right='20px';term.style.bottom='20px';}
+      else{term.classList.remove('float');term.style.left=term.style.top=term.style.right=term.style.bottom=term.style.width=term.style.height='';
+        slot.insertBefore(term,slot.firstChild);note.hidden=true;slot.classList.remove('empty');}
+    }
+    pop.addEventListener('click',function(){setFloat(!floating)});
+    dock.addEventListener('click',function(){setFloat(false)});
+    // drag by the title bar (only when floating), ignore clicks on the pop button
+    var sx,sy,ox,oy,dragging=false;
+    bar.addEventListener('pointerdown',function(e){
+      if(!floating||e.button!==0||(e.target.closest&&e.target.closest('.bar-btn')))return;
+      var r=term.getBoundingClientRect();
+      term.style.left=r.left+'px';term.style.top=r.top+'px';term.style.right='auto';term.style.bottom='auto';
+      sx=e.clientX;sy=e.clientY;ox=r.left;oy=r.top;dragging=true;bar.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    bar.addEventListener('pointermove',function(e){
+      if(!dragging)return;var w=term.offsetWidth,h=term.offsetHeight;
+      term.style.left=Math.max(4,Math.min(innerWidth-w-4,ox+e.clientX-sx))+'px';
+      term.style.top=Math.max(4,Math.min(innerHeight-h-4,oy+e.clientY-sy))+'px';
+    });
+    function up(){dragging=false}bar.addEventListener('pointerup',up);bar.addEventListener('pointercancel',up);
+  })();
 
   /* dark / light compare slider */
   var cmp=document.getElementById('cmp');
