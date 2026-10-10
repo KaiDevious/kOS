@@ -508,7 +508,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   }
   var started=Date.now();
   var cmds={
-    help:function(){return 'commands: <span class="t-b">fastfetch  motd  name  whoami  uname  ls  cat readme.txt  date  uptime  echo  theme [dark|light]  install  history  clear</span>\n<span class="t-d">(there may be a few secret ones)</span>'},
+    help:function(){return 'commands: <span class="t-b">fastfetch  specs  motd  name  whoami  uname  ls  cat readme.txt  date  uptime  echo  theme [dark|light]  install  history  clear</span>\n<span class="t-d">(there may be a few secret ones)</span>'},
     fastfetch:fastfetch, neofetch:fastfetch,
     motd:function(){return motdText?esc(motdText):'<span class="t-d">(no message right now)</span>'},
     whoami:function(){return esc(user)},
@@ -554,6 +554,60 @@ sudo bash scripts/kos-setup.sh</code></pre>
       },300*(steps.length+2));
       return null},
     mkfs:function(){return cmds.format()},
+    specs:function(){
+      var ua=navigator.userAgent,uad=navigator.userAgentData;
+      function osName(){
+        var p=(uad&&uad.platform)||'';
+        if(/win/i.test(p)||/Windows/.test(ua))return 'Windows';
+        if(/android/i.test(p)||/Android/.test(ua))return 'Android';
+        if(/iPhone|iPad|iPod/.test(ua))return 'iOS / iPadOS';
+        if(/mac/i.test(p)||/Mac OS X/.test(ua))return 'macOS';
+        if(/CrOS/.test(ua)||/chrome os/i.test(p))return 'ChromeOS';
+        if(/linux/i.test(p)||/Linux/.test(ua))return 'Linux';
+        return 'unknown';
+      }
+      function browser(){
+        var m;
+        if((m=ua.match(/Edg\/(\d+)/)))return 'Edge '+m[1];
+        if((m=ua.match(/OPR\/(\d+)/)))return 'Opera '+m[1];
+        if((m=ua.match(/Firefox\/(\d+)/)))return 'Firefox '+m[1];
+        if((m=ua.match(/Chrome\/(\d+)/)))return 'Chrome '+m[1];
+        if((m=ua.match(/Version\/(\d+).*Safari/)))return 'Safari '+m[1];
+        return 'unknown';
+      }
+      function gpu(){
+        try{var c=document.createElement('canvas'),gl=c.getContext('webgl')||c.getContext('experimental-webgl');if(!gl)return 'hidden by your browser';
+          var d=gl.getExtension('WEBGL_debug_renderer_info');var r=d?gl.getParameter(d.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);
+          r=String(r);var m=r.match(/^ANGLE \((.*)\)$/);
+          if(m){var parts=m[1].split(/,\s*/);r=parts.length>1?parts[1]:parts[0]}
+          return r.replace(/\s*\(0x[0-9a-f]+\)/ig,'').replace(/\s*Direct3D.*$/i,'').trim();
+        }catch(e){return 'hidden by your browser'}
+      }
+      function gb(n){return n>=1073741824?(n/1073741824).toFixed(1)+' GB':(n/1048576).toFixed(0)+' MB'}
+      var mem=navigator.deviceMemory,cores=navigator.hardwareConcurrency;
+      var sw=screen.width,sh=screen.height,dpr=window.devicePixelRatio||1;
+      var rows=[
+        ['OS',osName()],
+        ['Browser',browser()],
+        ['CPU',cores?cores+' threads':'hidden by your browser'],
+        ['RAM',mem?(mem>=8?'8+ GB':'~'+mem+' GB')+' <span class="t-d">(browsers round this)</span>':'hidden by your browser'],
+        ['GPU',esc(gpu())],
+        ['Screen',sw+' x '+sh+(dpr!==1?' <span class="t-d">('+Math.round(sw*dpr)+' x '+Math.round(sh*dpr)+' real pixels, '+dpr+'x scale)</span>':'')],
+        ['Language',esc(navigator.language||'unknown')],
+        ['Timezone',esc((Intl.DateTimeFormat().resolvedOptions().timeZone)||'unknown')]
+      ];
+      var jobs=[];
+      if(navigator.storage&&navigator.storage.estimate)jobs.push(navigator.storage.estimate().then(function(e){rows.push(['Storage','~'+gb(e.quota)+' free for websites <span class="t-d">(not your whole drive)</span>'])}).catch(function(){}));
+      if(navigator.getBattery)jobs.push(navigator.getBattery().then(function(bt){
+        var full=bt.level===1&&bt.charging&&bt.chargingTime===0;
+        rows.push(['Battery',full?'none / plugged in':Math.round(bt.level*100)+'%'+(bt.charging?' (charging)':'')]);
+      }).catch(function(){}));
+      Promise.all(jobs).then(function(){
+        var w=Math.max.apply(null,rows.map(function(r){return r[0].length}));
+        print(rows.map(function(r){return '<span class="t-b">'+(r[0]+':').padEnd(w+2)+'</span>'+r[1]}).join('\n')+'\n<span class="t-d">(this all stays on your pc. nothing gets sent anywhere.)</span>');
+      });
+      return '<span class="t-d">scanning your pc...</span>';
+    },
     exit:function(){return 'there is no escape. (try closing the tab)'},
     bored:function(){return '"im bored" — Kai\nsame tbh.'},
     kai:function(){return 'built kOS. found the two buttons on the side of a mouse go forth and back a page.'}
