@@ -54,6 +54,7 @@ else
 fi
 
 say "6/8  Broadcast: terminal MOTD + desktop notifications"
+apt-get install -y curl libnotify-bin >/dev/null 2>&1 || true   # notify-send
 # MOTD for login/SSH shells
 cat > /etc/profile.d/kos-motd.sh <<EOF2
 case \$- in *i*)
