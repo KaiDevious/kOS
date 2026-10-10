@@ -618,7 +618,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   }
   var started=Date.now();
   var cmds={
-    help:function(){return 'commands: <span class="t-b">fastfetch  specs  motion rain full|kos|off  motd  name  whoami  uname  ls  cat readme.txt  date  uptime  echo  theme [dark|light]  install  history  clear</span>\n<span class="t-d">(there may be a few secret ones)</span>'},
+    help:function(){return 'commands: <span class="t-b">fastfetch  specs  motion rain full|kos|off  motion mouse on|off  motd  name  whoami  uname  ls  cat readme.txt  date  uptime  echo  theme [dark|light]  install  history  clear</span>\n<span class="t-d">(there may be a few secret ones)</span>'},
     fastfetch:fastfetch, neofetch:fastfetch,
     motd:function(){return motdText?esc(motdText):'<span class="t-d">(no message right now)</span>'},
     whoami:function(){return esc(user)},
@@ -666,6 +666,14 @@ sudo bash scripts/kos-setup.sh</code></pre>
     mkfs:function(){return cmds.format()},
     motion:function(a){
       var what=(a[0]||'').toLowerCase(),m=(a[1]||'').toLowerCase();
+      if(what==='mouse'){
+        if(m!=='on'&&m!=='off')return 'usage: motion mouse on | motion mouse off';
+        if(!window.__kosRain)return 'rain is not available here.';
+        var on=m==='on';if(window.__kosRain.mouse()===on)return 'mouse rain is already '+m+'.';
+        window.__kosRain.mouse(on);
+        if(!on)return 'rain falls straight down again.';
+        return '<span class="t-b">rain follows your mouse now.</span>'+(window.__kosRain.get()!=='full'?' <span class="t-d">(it only works with motion rain full)</span>':' point anywhere. even up.');
+      }
       if(what!=='rain'||['full','kos','off'].indexOf(m)<0)return 'usage: motion rain full | motion rain kos | motion rain off';
       if(!window.__kosRain)return 'rain is not available here.';
       if(window.__kosRain.get()===m)return 'rain is already set to '+m+'.';
@@ -1179,9 +1187,9 @@ sudo bash scripts/kos-setup.sh</code></pre>
     addEventListener('resize',function(){if(fc)fsize()});
   }
   // rain falls toward your mouse: point above the middle of the screen and it falls up
-  var gx=0,gy=1,tx=0,ty=1,mouseSeen=false;
+  var gx=0,gy=1,tx=0,ty=1,mouseSeen=false,follow=false;try{follow=localStorage.getItem('kos-rain-mouse')==='on'}catch(e){}
   addEventListener('pointermove',function(e){
-    if(e.pointerType==='touch')return;
+    if(e.pointerType==='touch'||!follow)return;
     var dx=e.clientX-FW/2,dy=e.clientY-FH/2,l=Math.hypot(dx,dy);
     if(l<40){tx=0;ty=1}else{tx=dx/l;ty=dy/l}mouseSeen=true;
   },{passive:true});
@@ -1243,6 +1251,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
 
   window.__kosRain={
     get:function(){return mode},
+    mouse:function(on){if(on===undefined)return follow;follow=on;try{localStorage.setItem('kos-rain-mouse',on?'on':'off')}catch(e){}if(!on){tx=0;ty=1}},
     set:function(m){
       mode=m;try{localStorage.setItem('kos-rain',m)}catch(e){}
       if(m==='kos'){measure();start()}
