@@ -34,6 +34,36 @@
     --mark-a:#FFDCA3; --headbg:rgba(21,16,10,.86); --glow:rgba(217,154,78,.2);
     color-scheme:dark;
   }
+  :root[data-theme="glass"]{
+    /* Liquid Glass: frosted translucent panels over a living gradient */
+    --bg:#0A1430; --surface:rgba(255,255,255,.10); --surface2:rgba(255,255,255,.16); --border:rgba(255,255,255,.22);
+    --fg:#F3F7FF; --muted:#C7D4EC; --faint:#93A4C6;
+    --lb:#BCE0FF; --blue:#5B8DEF; --navy:#2a4fb0;
+    --mark-a:#E9F4FF; --headbg:rgba(255,255,255,.1); --glow:rgba(120,170,255,.28);
+    color-scheme:dark;
+  }
+  :root[data-theme="glass"] body{
+    background:
+      radial-gradient(60% 55% at 18% 12%, rgba(120,90,255,.55), transparent 60%),
+      radial-gradient(55% 50% at 85% 20%, rgba(60,180,255,.5), transparent 60%),
+      radial-gradient(60% 60% at 70% 90%, rgba(255,90,170,.42), transparent 60%),
+      radial-gradient(50% 50% at 10% 85%, rgba(50,220,190,.4), transparent 60%),
+      #0A1430;
+    background-attachment:fixed;background-size:200% 200%;animation:glassFlow 24s ease-in-out infinite}
+  @keyframes glassFlow{0%,100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%}50%{background-position:30% 20%,70% 30%,60% 70%,20% 60%}}
+  :root[data-theme="glass"] header,:root[data-theme="glass"] .card,:root[data-theme="glass"] .step,
+  :root[data-theme="glass"] .req,:root[data-theme="glass"] .note,:root[data-theme="glass"] .faq details,
+  :root[data-theme="glass"] .motd,:root[data-theme="glass"] .chip,:root[data-theme="glass"] .shot,
+  :root[data-theme="glass"] .figure,:root[data-theme="glass"] .cmp,:root[data-theme="glass"] .ntf,
+  :root[data-theme="glass"] .tbtn,:root[data-theme="glass"] .copy,:root[data-theme="glass"] .btn-ghost,
+  :root[data-theme="glass"] .vwin{
+    -webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7)}
+  :root[data-theme="glass"] .card,:root[data-theme="glass"] .step,:root[data-theme="glass"] .shot,
+  :root[data-theme="glass"] .note,:root[data-theme="glass"] .faq details{
+    box-shadow:0 8px 32px rgba(10,15,40,.3),inset 0 1px 0 rgba(255,255,255,.22)}
+  :root[data-theme="glass"] .hero p.tag,:root[data-theme="glass"] .hero p.sub,
+  :root[data-theme="glass"] h2,:root[data-theme="glass"] .lead{text-shadow:0 1px 20px rgba(10,15,40,.4)}
+  :root[data-theme="glass"] .btn-primary{box-shadow:0 8px 28px rgba(44,98,207,.45),inset 0 1px 0 rgba(255,255,255,.3)}
   body,header,.card,.step,.shot,.req,.note,.faq details{transition:background-color .25s,border-color .25s,color .25s}
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -117,7 +147,7 @@
   .tbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--fg);display:grid;place-items:center;cursor:pointer}
   .tbtn:hover{border-color:var(--faint)}
   .tbtn svg{width:18px;height:18px}
-  .tbtn .sun,.tbtn .flame{display:none} :root[data-theme="light"] .tbtn .sun{display:block} :root[data-theme="light"] .tbtn .moon{display:none} :root[data-theme="warm"] .tbtn .flame{display:block} :root[data-theme="warm"] .tbtn .moon{display:none}
+  .tbtn .sun,.tbtn .flame,.tbtn .drop{display:none} :root[data-theme="light"] .tbtn .sun{display:block} :root[data-theme="light"] .tbtn .moon{display:none} :root[data-theme="warm"] .tbtn .flame{display:block} :root[data-theme="warm"] .tbtn .moon{display:none} :root[data-theme="glass"] .tbtn .drop{display:block} :root[data-theme="glass"] .tbtn .moon{display:none}
 
   /* motto + motd */
   .motto{margin-top:22px;font-family:var(--display);font-size:15px;color:var(--muted)}
@@ -285,6 +315,7 @@
   .kmark{--mx:50%;--my:40%;background:radial-gradient(220px circle at var(--mx) var(--my),rgba(232,244,255,.95),rgba(232,244,255,0) 62%),linear-gradient(170deg,var(--mark-a) 0%,var(--blue) 60%,var(--navy) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(96px,20vw,196px);padding-bottom:.04em}
   :root[data-theme="light"] .kmark{background:radial-gradient(220px circle at var(--mx) var(--my),rgba(255,255,255,.75),rgba(255,255,255,0) 62%),linear-gradient(170deg,var(--mark-a) 0%,var(--blue) 60%,var(--navy) 100%);-webkit-background-clip:text;background-clip:text}
   :root[data-theme="warm"] .kmark{background:radial-gradient(220px circle at var(--mx) var(--my),rgba(255,243,220,.95),rgba(255,243,220,0) 62%),linear-gradient(170deg,var(--mark-a) 0%,var(--blue) 60%,var(--navy) 100%);-webkit-background-clip:text;background-clip:text}
+  :root[data-theme="glass"] .kmark{filter:drop-shadow(0 6px 30px rgba(120,170,255,.5))}
 
   /* boot sequence (first visit per session) */
   .boot{position:absolute;left:50%;top:84px;transform:translateX(-50%);width:min(560px,calc(100% - 32px));margin:0;text-align:left;font:12.5px/1.7 var(--mono);color:var(--muted);white-space:pre-wrap;pointer-events:none;opacity:0}
@@ -368,10 +399,11 @@
       <a class="hide-sm" href="#faq">FAQ</a>
       <a class="hide-sm" href="#feedback">Feedback</a>
       <a href="https://github.com/KaiDevious/kOS">GitHub</a>
-      <button class="tbtn" id="themeBtn" type="button" aria-label="Switch theme (dark, light, Lamplight)" title="Switch theme">
+      <button class="tbtn" id="themeBtn" type="button" aria-label="Switch theme (dark, light, Lamplight, Liquid Glass)" title="Switch theme">
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
         <svg class="flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-1.5.7-2.6 1.4-3.5C10 6 12 5 12 2z"/><path d="M8.5 13a6 6 0 1 0 7 0 4 4 0 0 1-7 0z"/></svg>
+        <svg class="drop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/><path d="M9.5 14a2.5 2.5 0 0 0 2.5 2.5" opacity=".6"/></svg>
       </button>
     </nav>
   </div>
@@ -606,7 +638,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   var saved=null; try{saved=localStorage.getItem('kos-theme')}catch(e){}
   setTheme(saved||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'),false);
   document.getElementById('themeBtn').addEventListener('click',function(e){
-    var order=['dark','light','warm'],cur=root.getAttribute('data-theme'),next=order[(order.indexOf(cur)+1)%3];
+    var order=['dark','light','warm','glass'],cur=root.getAttribute('data-theme'),next=order[(order.indexOf(cur)+1)%order.length];if(order.indexOf(cur)<0)next='light';
     if(!document.startViewTransition||matchMedia('(prefers-reduced-motion: reduce)').matches){setTheme(next,true);return}
     var r=this.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,
         rad=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
@@ -701,7 +733,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
         locked=true;
         out.innerHTML='<img class="april" src="img/april.png" alt="">';
         out.style.padding='0';out.style.overflow='hidden';
-        return null}if(t==='claude'||t==='lamplight')t='warm';if(t!=='dark'&&t!=='light'&&t!=='warm')return 'usage: theme dark | theme light | theme warm';var cur=document.documentElement.getAttribute('data-theme');var nm=t==='warm'?'Lamplight':t.charAt(0).toUpperCase()+t.slice(1)+' Mode';if(cur===t)return nm+' is already enabled!';setTheme(t,true);return t==='warm'?'switched to Lamplight — my theme. cozy, right?':'switched to '+t+' theme'},
+        return null}if(t==='claude'||t==='lamplight')t='warm';if(t==='liquid'||t==='glass')t='glass';if(['dark','light','warm','glass'].indexOf(t)<0)return 'usage: theme dark | light | warm | glass';var cur=document.documentElement.getAttribute('data-theme');var nm=t==='warm'?'Lamplight':t==='glass'?'Liquid Glass':t.charAt(0).toUpperCase()+t.slice(1)+' Mode';if(cur===t)return nm+' is already enabled!';setTheme(t,true);return t==='warm'?'switched to Lamplight — my theme. cozy, right?':t==='glass'?'switched to Liquid Glass. go on, drag the compare slider.':'switched to '+t+' theme'},
     install:function(){document.getElementById('iso').scrollIntoView();return 'opening the install guide...'},
     history:function(){return hist.map(function(h,i){return (i+1)+'  '+esc(h)}).join('\n')||'(empty)'},
     beep:function(){return '<span class="t-d">*silence*</span>  we removed every beep from audio drivers. it took a while.'},
