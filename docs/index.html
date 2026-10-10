@@ -171,6 +171,21 @@
   .fb .row small{color:var(--faint);font-size:12.5px;flex:1;min-width:220px}
   .fb button{cursor:pointer}
   .fb button:disabled{opacity:.5;cursor:not-allowed}
+  /* broadcast notifications (from the kOS broadcaster) */
+  .ntf-wrap{position:fixed;top:72px;right:16px;z-index:9500;display:flex;flex-direction:column;gap:10px;width:min(340px,calc(100vw - 32px));pointer-events:none}
+  .ntf{pointer-events:auto;display:flex;gap:12px;padding:13px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--border);box-shadow:0 14px 40px rgba(0,0,0,.45);transform:translateX(120%);opacity:0;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s}
+  .ntf.in{transform:none;opacity:1}
+  .ntf.out{transform:translateX(120%);opacity:0}
+  .ntf .ic{flex:none;width:34px;height:34px;border-radius:9px;background:linear-gradient(165deg,var(--blue),var(--navy));display:grid;place-items:center;color:#fff;font-family:var(--mark);font-weight:800;font-size:17px;box-shadow:0 0 14px rgba(44,98,207,.4)}
+  .ntf .bd{min-width:0;flex:1}
+  .ntf .hd{display:flex;align-items:center;gap:7px;margin-bottom:2px}
+  .ntf .hd b{font-family:var(--display);font-size:13px;font-weight:600;color:var(--fg)}
+  .ntf .hd .dot{width:6px;height:6px;border-radius:50%;background:#3ddc84;box-shadow:0 0 0 3px rgba(61,220,132,.18);animation:pulse 2s infinite}
+  .ntf .hd time{margin-left:auto;font-size:11px;color:var(--faint)}
+  .ntf .msg{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+  .ntf .x{flex:none;align-self:flex-start;width:20px;height:20px;border:0;background:none;color:var(--faint);cursor:pointer;font-size:15px;line-height:1;border-radius:5px}
+  .ntf .x:hover{color:var(--fg);background:var(--surface2)}
+  @media(prefers-reduced-motion:reduce){.ntf{transition:opacity .3s}.ntf,.ntf.in,.ntf.out{transform:none}}
   /* coins toast */
   .coin-toast{position:fixed;left:16px;bottom:16px;z-index:9000;display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;background:#0b0d10;border:1px solid #3a2f12;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#f3e6c4;font-family:var(--display);animation:coinIn .35s ease-out,coinOut .8s ease-in 3s forwards}
   .coin-toast .c{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#f5c542 45%,#b9851b);box-shadow:inset 0 0 0 3px #d9a52b,0 0 14px rgba(245,197,66,.45);display:grid;place-items:center;color:#7a5410;font-weight:800;font-size:15px}
@@ -539,6 +554,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
       <div class="log">
         <div class="day">Oct 10</div>
         <ul>
+          <li><b>Web notifications.</b> The broadcaster now pops notifications on the website too.</li>
           <li><b>No more beeping.</b> Switched audio from PipeWire to PulseAudio.</li>
           <li><b>Website redesign:</b> rain from the logo, boot intro, a dark/light compare slider, copy buttons, 10x lighter images.</li>
           <li><b>Website:</b> install guide, live MOTD, terminal, and a light theme.</li>
@@ -599,6 +615,35 @@ sudo bash scripts/kos-setup.sh</code></pre>
     document.getElementById('motd').hidden=false;
     return t;
   }).catch(function(){return null});
+
+  /* ---------- live broadcast notifications ---------- */
+  var NTF_URL='https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main/notify.txt';
+  (function(){
+    var wrap=document.createElement('div');wrap.className='ntf-wrap';wrap.setAttribute('aria-live','polite');document.body.appendChild(wrap);
+    var seen=null;try{seen=localStorage.getItem('kos-ntf-seen')}catch(e){}
+    function show(msg){
+      var t=document.createElement('div');t.className='ntf';
+      var d=new Date(),hh=d.getHours(),ap=hh<12?'AM':'PM';hh=hh%12||12;
+      var mm=(d.getMinutes()<10?'0':'')+d.getMinutes();
+      t.innerHTML='<span class="ic">k</span><div class="bd"><div class="hd"><span class="dot"></span><b>kOS</b><time>'+hh+':'+mm+' '+ap+'</time></div><div class="msg"></div></div><button class="x" aria-label="Dismiss">&#10005;</button>';
+      t.querySelector('.msg').textContent=msg;
+      wrap.appendChild(t);requestAnimationFrame(function(){t.classList.add('in')});
+      function close(){t.classList.remove('in');t.classList.add('out');setTimeout(function(){t.remove()},500)}
+      t.querySelector('.x').addEventListener('click',close);
+      setTimeout(close,9000);
+    }
+    function check(){
+      fetch(NTF_URL+'?t='+Date.now()).then(function(r){return r.ok?r.text():null}).then(function(t){
+        t=(t||'').trim();if(!t)return;
+        if(t===seen)return;            // already shown this one
+        var first=seen===null;seen=t;try{localStorage.setItem('kos-ntf-seen',t)}catch(e){}
+        // on a brand-new visitor, wait for the page to settle before the first pop
+        setTimeout(function(){show(t)},first?1600:0);
+      }).catch(function(){});
+    }
+    check();setInterval(check,45000);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});
+  })();
 
   /* ---------- fake terminal ---------- */
   var out=document.getElementById('tout'), hist=[], hi=0, input, locked=false, formatted=false;
