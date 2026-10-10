@@ -19,6 +19,7 @@ sed -i 's/^NAME=.*/NAME="kOS"/; s/^PRETTY_NAME=.*/PRETTY_NAME="kOS"/' /etc/os-re
 
 say "2/8  Silencing the PC-speaker beep"
 echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
+echo 'unsetopt BEEP' >> /etc/zsh/zshrc 2>/dev/null || true
 rmmod pcspkr 2>/dev/null || true
 
 say "3/8  fastfetch with the kOS logo"
@@ -93,6 +94,7 @@ say "7/8  Colored zsh for new users + you"
 apt-get install -y zsh zsh-syntax-highlighting zsh-autosuggestions >/dev/null 2>&1 || true
 cat > /etc/skel/.zshrc <<'ZRC'
 HISTFILE=~/.zsh_history; HISTSIZE=10000; SAVEHIST=10000; setopt share_history
+unsetopt BEEP   # no beeps on tab-complete/errors
 autoload -Uz compinit && compinit
 PROMPT='%F{cyan}%n@%m%f:%F{blue}%~%f$ '
 [ -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
