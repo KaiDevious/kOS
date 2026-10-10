@@ -223,6 +223,19 @@
   .log li b{color:var(--fg);font-weight:600}
   .log ul:first-of-type li::before{background:var(--blue)}
   @media(prefers-reduced-motion:reduce){.motd .dot{animation:none} html{scroll-behavior:auto}}
+  /* feedback modal */
+  .modal{border:0;padding:0;background:transparent;inset:0;margin:auto;max-width:min(560px,calc(100vw - 32px));width:100%;height:fit-content;max-height:calc(100vh - 32px);color:var(--fg);overflow:visible}
+  .modal::backdrop{background:rgba(2,4,8,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .modal[open]{animation:modalIn .28s cubic-bezier(.2,.8,.2,1)}
+  .modal[open]::backdrop{animation:fadeIn .28s ease}
+  @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:0 30px 80px -20px rgba(0,0,0,.6)}
+  .modal-x{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:15px;cursor:pointer;display:grid;place-items:center}
+  .modal-x:hover{color:var(--fg);border-color:var(--faint)}
+  .modal-card h2{margin-bottom:8px}
+  .modal-card .fb{border:0;padding:0;background:none;max-width:none;margin-top:14px}
+  @media(prefers-reduced-motion:reduce){.modal[open],.modal[open]::backdrop{animation:none}}
   /* feedback */
   .fb{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;display:grid;gap:14px;max-width:720px}
   .fb .kinds{display:flex;flex-wrap:wrap;gap:8px;border:0}
@@ -453,7 +466,7 @@
       <a class="hide-sm" href="#try">Try it</a>
       <a class="hide-sm" href="#iso">Install</a>
       <a class="hide-sm" href="#faq">FAQ</a>
-      <a class="hide-sm" href="#feedback">Feedback</a>
+      <a class="hide-sm" href="#feedback" id="fbOpen">Feedback</a>
       <a href="https://github.com/KaiDevious/kOS">GitHub</a>
       <button class="tbtn" id="themeBtn" type="button" aria-label="Switch theme (dark, light, Lamplight, Liquid Glass)" title="Switch theme">
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -609,7 +622,9 @@ sudo bash scripts/kos-setup.sh</code></pre>
 </section>
 
 
-<section class="wrap" id="feedback">
+<dialog id="fbDialog" class="modal" aria-label="Send feedback">
+  <div class="modal-card">
+  <button class="modal-x" id="fbClose" type="button" aria-label="Close">&#10005;</button>
   <h2>Feedback</h2>
   <p class="lead">Found a bug, have an idea, or just want to say something? Send it here and Kai will see it.</p>
   <form class="fb" id="fbForm">
@@ -631,7 +646,8 @@ sudo bash scripts/kos-setup.sh</code></pre>
       <small>Opens GitHub with your message filled in, then click <b>Create</b>. You need a free GitHub account. Feedback is public, so don't include passwords or personal info.</small>
     </div>
   </form>
-</section>
+  </div>
+</dialog>
 
 <section class="wrap" id="faq">
   <div class="two">
@@ -1531,6 +1547,16 @@ sudo bash scripts/kos-setup.sh</code></pre>
     (function wait(){if(document.documentElement.classList.contains('booting'))return setTimeout(wait,120);setTimeout(function(){measure();start();fstart()},1000)})();
   }
   (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(go);
+})();
+</script>
+<script>
+(function(){
+  var dlg=document.getElementById('fbDialog'),open=document.getElementById('fbOpen'),x=document.getElementById('fbClose');
+  if(!dlg||!dlg.showModal)return;
+  function show(e){if(e)e.preventDefault();dlg.showModal();var f=document.getElementById('fbTitle');if(f)setTimeout(function(){f.focus()},60)}
+  open.addEventListener('click',show);
+  x.addEventListener('click',function(){dlg.close()});
+  dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});   // click outside the card
 })();
 </script>
 </body>
