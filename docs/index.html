@@ -440,7 +440,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     beep:function(){return '<span class="t-d">*silence*</span>  we removed every beep from audio drivers. it took a while.'},
     roblox:function(){return '<span class="t-y">Sober couldn\'t find a supported graphics device.</span>\n<span class="t-d">(works on real hardware. not in a VM. trust me.)</span>'},
     sober:function(){return cmds.roblox()},
-    sudo:function(a){return a.join(' ').indexOf('rm -rf')>-1?'<span class="t-y">nice try.</span> this terminal is fake? real? idk, but your files are not safe either way.':'[sudo] password for '+esc(user)+': <span class="t-d">********</span>\n'+esc(user)+' is not in the sudoers file. this incident will be reported. (to nobody)'},
+    sudo:function(a){if(a.join(' ').indexOf('rm -rf')>-1){print('<span class="t-y">nice try.</span> this terminal is fake? real? idk, but your files are not safe either way.');return cmds.format()}return '[sudo] password for '+esc(user)+': <span class="t-d">********</span>\n'+esc(user)+' is not in the sudoers file. this incident will be reported. (to nobody)'},
     format:function(){
       locked=true;
       var steps=['<span class="t-y">formatting /dev/kos...</span>','[#####               ] 25%','[##########          ] 50%','[###############     ] 75%','[####################] 100%','<span class="t-d">goodbye.</span>'];
