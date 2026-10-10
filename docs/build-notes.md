@@ -23,4 +23,7 @@ Run `sudo bash scripts/kos-setup.sh` from a checkout, then reboot and:
   sudo touch /tmp/coa/bootloaders/.download-complete  # the marker eggs checks for
   ```
   (/tmp clears on reboot, so redo this before a rebuild.)
-- Installer (Calamares) + boot-menu branding lives under `/etc/penguins-eggs.d/branding.default/`.
+- Before building, run `sudo bash scripts/kos-eggs-branding.sh`. It copies the kOS boot menu,
+  installer branding and installer icon into `/etc/penguins-eggs.d/branding/` (the folder eggs
+  reads custom branding from) and runs `eggs tools skel` so the live user gets your desktop look.
+  Without it, the ISO falls back to eggs' default penguin branding.
