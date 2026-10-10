@@ -488,9 +488,15 @@ sudo bash scripts/kos-setup.sh</code></pre>
     if(locked)return;
     var raw=line.trim();
     input.classList.remove('t-deny-in');
-    if(window.__kosDenied&&isMagic(raw)){
+    if(isMagic(raw)){
       print(prompt()+'<span class="t-deny">'+esc(raw)+'</span>');
-      setTimeout(function(){print('<span class="t-deny">ACCESS GRANTED.</span>');window.__kosDenied=false},900);
+      if(window.__kosDenied){setTimeout(function(){print('<span class="t-deny">ACCESS GRANTED.</span>');window.__kosDenied=false},900)}
+      else{setTimeout(function(){print('<span class="t-deny">TYPE SUDO CD /home/'+esc(user)+'/voical</span>')},900)}
+      return;
+    }
+    if(!window.__kosDenied&&/^sudo\s+cd\s+\/home\/[^\/\s]+\/voical\/?$/i.test(raw)){
+      print(prompt()+esc(raw));
+      setTimeout(function(){void window.kos},600);
       return;
     }
     print(prompt()+esc(raw));
@@ -529,7 +535,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   });
   function isMagic(v){return /^access denied\.?$/i.test(v.trim())}
   input.addEventListener('input',function(){
-    input.classList.toggle('t-deny-in',!!window.__kosDenied&&isMagic(input.value));
+    input.classList.toggle('t-deny-in',isMagic(input.value));
   });
   input.addEventListener('keydown',function(e){
     if(e.key==='Enter'){run(input.value);input.value=''}
