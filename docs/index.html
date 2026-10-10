@@ -798,14 +798,23 @@ sudo bash scripts/kos-setup.sh</code></pre>
     return '_';
   }
   // KOSISGREAT: free pretend money
+  function toast(title,sub){
+    var t=document.createElement('div');t.className='coin-toast';t.setAttribute('role','status');
+    t.innerHTML='<span class="c">k</span><span><b>'+title+'</b><small>'+sub+'</small></span>';
+    document.body.appendChild(t);setTimeout(function(){t.remove()},4000);
+  }
   function coins(){
     var total=100;try{total=(parseInt(localStorage.getItem('kos-coins'),10)||0)+100;localStorage.setItem('kos-coins',total)}catch(e){}
-    var t=document.createElement('div');t.className='coin-toast';t.setAttribute('role','status');
-    t.innerHTML='<span class="c">k</span><span><b>+100 coins</b><small>total: '+total+' (they\'re pretend)</small></span>';
-    document.body.appendChild(t);setTimeout(function(){t.remove()},4000);
+    toast('+100 coins','total: '+total+' (they\'re pretend)');
     return '+100 coins. total: '+total;
   }
+  function coinReset(){
+    try{localStorage.setItem('kos-coins',0)}catch(e){}
+    toast('coins reset','total: 0. it\'s like they never existed');
+    return 'coins reset. total: 0';
+  }
   try{Object.defineProperty(window,'KOSISGREAT',{get:coins,configurable:true})}catch(e){}
+  try{Object.defineProperty(window,'COINRESET',{get:coinReset,configurable:true})}catch(e){}
   ['kos','hack','matrix','sudo'].forEach(function(w){
     try{Object.defineProperty(window,w,{get:enter,configurable:true})}catch(e){}
   });
