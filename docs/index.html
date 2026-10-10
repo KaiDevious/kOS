@@ -238,6 +238,7 @@
   /* rain falling out of the wordmark */
   .rain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
   .hero>.wrap{position:relative;z-index:1}
+  .rain-full{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1}
   /* ===== v3: motion + detail ===== */
   h1,h2,h3{font-family:var(--display)}
   h2{font-weight:650;letter-spacing:-.025em}
@@ -617,7 +618,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   }
   var started=Date.now();
   var cmds={
-    help:function(){return 'commands: <span class="t-b">fastfetch  specs  motd  name  whoami  uname  ls  cat readme.txt  date  uptime  echo  theme [dark|light]  install  history  clear</span>\n<span class="t-d">(there may be a few secret ones)</span>'},
+    help:function(){return 'commands: <span class="t-b">fastfetch  specs  motion rain full|kos|off  motd  name  whoami  uname  ls  cat readme.txt  date  uptime  echo  theme [dark|light]  install  history  clear</span>\n<span class="t-d">(there may be a few secret ones)</span>'},
     fastfetch:fastfetch, neofetch:fastfetch,
     motd:function(){return motdText?esc(motdText):'<span class="t-d">(no message right now)</span>'},
     whoami:function(){return esc(user)},
@@ -663,6 +664,14 @@ sudo bash scripts/kos-setup.sh</code></pre>
       },300*(steps.length+2));
       return null},
     mkfs:function(){return cmds.format()},
+    motion:function(a){
+      var what=(a[0]||'').toLowerCase(),m=(a[1]||'').toLowerCase();
+      if(what!=='rain'||['full','kos','off'].indexOf(m)<0)return 'usage: motion rain full | motion rain kos | motion rain off';
+      if(!window.__kosRain)return 'rain is not available here.';
+      if(window.__kosRain.get()===m)return 'rain is already set to '+m+'.';
+      window.__kosRain.set(m);
+      return {full:'<span class="t-b">it\'s pouring.</span> rain is falling over the whole page now.',kos:'<span class="t-b">back to the cloud.</span> rain falls from the kOS logo again.',off:'rain stopped. <span class="t-d">(motion rain kos to bring it back)</span>'}[m];
+    },
     specs:function(){
       var ua=navigator.userAgent,uad=navigator.userAgentData;
       function osName(){
@@ -1111,7 +1120,9 @@ sudo bash scripts/kos-setup.sh</code></pre>
 <script>
 /* the kOS wordmark is a cloud: rain falls out of the bottom of the letters, forever */
 (function(){
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var mode=null;try{mode=localStorage.getItem('kos-rain')}catch(e){}
+  if(!mode)mode=reduced?'off':'kos';
   var hero=document.getElementById('hero'),cv=document.getElementById('rain'),mark=document.getElementById('kmark');
   if(!cv||!cv.getContext)return;
   var cx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1),W=0,H=0,spouts=[],drops=[],rings=[],floor=0,visible=true,raf=0,last=0,acc=0;
@@ -1138,7 +1149,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     drops.push({x:s.x+(Math.random()-.5)*2,y:s.y,v:.6+Math.random()*1.2,len:8+Math.random()*16,w:Math.random()<.2?1.6:1,c:Math.random()<.5?0:1,a:.35+Math.random()*.45});
   }
   function frame(t){
-    raf=0;if(!visible)return;
+    raf=0;if(!visible||mode!=='kos'){cx.clearRect(0,0,W,H);drops.length=0;rings.length=0;return}
     var dt=Math.min(50,t-(last||t));last=t;
     acc+=dt*(W/1000)*.11;            // rain density scales with width
     while(acc>1){spawn();acc--}
@@ -1157,7 +1168,64 @@ sudo bash scripts/kos-setup.sh</code></pre>
     cx.globalAlpha=1;
     raf=requestAnimationFrame(frame);
   }
-  function start(){if(!raf&&visible&&!document.hidden){last=0;raf=requestAnimationFrame(frame)}}
+  function start(){if(mode==='kos'&&!raf&&visible&&!document.hidden){last=0;raf=requestAnimationFrame(frame)}}
+
+  /* ---- full-screen rain: falls over the whole page, splashes on the bottom of the screen ---- */
+  var fc=null,fx=null,FW=0,FH=0,fdrops=[],fsplash=[],fring=[],fraf=0,flast=0,facc=0,wind=0,wt=0;
+  function fsize(){FW=innerWidth;FH=innerHeight;fc.width=Math.round(FW*dpr);fc.height=Math.round(FH*dpr);fx.setTransform(dpr,0,0,dpr,0,0)}
+  function fmake(){
+    if(fc)return;fc=document.createElement('canvas');fc.className='rain-full';fc.setAttribute('aria-hidden','true');
+    document.body.appendChild(fc);fx=fc.getContext('2d');fsize();
+    addEventListener('resize',function(){if(fc)fsize()});
+  }
+  function fspawn(){
+    var z=Math.random();z=z*z*.75+.25;               // more far drops than near ones
+    fdrops.push({x:Math.random()*(FW+200)-100,y:-30-Math.random()*60,z:z,v:.55+z*1.25,len:9+z*26,w:.5+z*1.2,a:.12+z*.55,c:Math.random()<.18?2:(Math.random()<.5?0:1)});
+  }
+  function ffr(t){
+    fraf=0;if(mode!=='full'){fx.clearRect(0,0,FW,FH);fdrops.length=fsplash.length=fring.length=0;return}
+    var dt=Math.min(50,t-(flast||t));flast=t;wt+=dt;
+    wind=Math.sin(wt/2600)*.12+Math.sin(wt/900)*.04+.1;   // a slow, gusty slant
+    facc+=dt*(FW*FH/1e6)*.30;
+    while(facc>1){fspawn();facc--}
+    fx.clearRect(0,0,FW,FH);fx.lineCap='round';
+    var cols=[colA,colB,'#e8f4ff'],floorY=FH-1;
+    for(var i=fdrops.length-1;i>=0;i--){
+      var d=fdrops[i];d.v+=.0009*dt*d.z;var dy=d.v*dt,dx=dy*wind;d.y+=dy;d.x+=dx;
+      if(d.y>=floorY){
+        // splash: a ring + a few droplets that bounce up and fall back
+        if(d.z>.45){fring.push({x:d.x,r:1,a:.25+d.z*.3,z:d.z});
+          var n=1+((d.z*3)|0);for(var k=0;k<n;k++)fsplash.push({x:d.x,y:floorY,vx:(Math.random()-.5)*.35+wind*.4,vy:-(.18+Math.random()*.32)*d.z,a:.6*d.z,c:d.c})}
+        fdrops.splice(i,1);continue;
+      }
+      fx.globalAlpha=d.a;fx.strokeStyle=cols[d.c];fx.lineWidth=d.w;
+      fx.beginPath();fx.moveTo(d.x-d.len*wind,d.y-d.len);fx.lineTo(d.x,d.y);fx.stroke();
+    }
+    for(var j=fsplash.length-1;j>=0;j--){
+      var p=fsplash[j];p.vy+=.0012*dt;p.x+=p.vx*dt*.4;p.y+=p.vy*dt*.4;p.a-=.0011*dt;
+      if(p.a<=0||p.y>floorY+1){fsplash.splice(j,1);continue}
+      fx.globalAlpha=p.a;fx.fillStyle=cols[p.c];fx.beginPath();fx.arc(p.x,p.y,1.1,0,Math.PI*2);fx.fill();
+    }
+    for(var q=fring.length-1;q>=0;q--){
+      var r=fring[q];r.r+=dt*.035*r.z;r.a-=dt*.0009;if(r.a<=0){fring.splice(q,1);continue}
+      fx.globalAlpha=r.a;fx.strokeStyle=colA;fx.lineWidth=1;fx.beginPath();fx.ellipse(r.x,floorY,r.r*3.2,r.r*.7,0,Math.PI,Math.PI*2);fx.stroke();
+    }
+    fx.globalAlpha=1;
+    if(!document.hidden)fraf=requestAnimationFrame(ffr);
+  }
+  function fstart(){if(mode==='full'&&!fraf&&!document.hidden){fmake();flast=0;fraf=requestAnimationFrame(ffr)}}
+  document.addEventListener('visibilitychange',fstart);
+
+  window.__kosRain={
+    get:function(){return mode},
+    set:function(m){
+      mode=m;try{localStorage.setItem('kos-rain',m)}catch(e){}
+      if(m==='kos'){measure();start()}
+      if(m==='full'){fstart()}
+      if(m!=='kos'){cx.clearRect(0,0,W,H)}
+      if(fc&&m!=='full'){fx.clearRect(0,0,FW,FH)}
+    }
+  };
   // pause when the hero is off screen or the tab is hidden
   if('IntersectionObserver' in window)new IntersectionObserver(function(es){visible=es[0].isIntersecting;start()}).observe(hero);
   document.addEventListener('visibilitychange',start);
@@ -1165,7 +1233,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   function go(){readColors();measure();
     // let the boot intro finish before it starts to rain
-    (function wait(){if(document.documentElement.classList.contains('booting'))return setTimeout(wait,120);setTimeout(function(){measure();start()},1000)})();
+    (function wait(){if(document.documentElement.classList.contains('booting'))return setTimeout(wait,120);setTimeout(function(){measure();start();fstart()},1000)})();
   }
   (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(go);
 })();
