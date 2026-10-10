@@ -1304,7 +1304,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
 
   /* ---- generated rain sound (no audio file) ---- */
   var AC=window.AudioContext||window.webkitAudioContext,ac=null,rainGain=null,rainOn=false;
-  try{rainOn=localStorage.getItem('kos-rain-sound')==='on'}catch(e){}
+  try{var rs=localStorage.getItem('kos-rain-sound');rainOn=rs===null?true:rs==='on'}catch(e){rainOn=true}
   function buildRain(){
     if(rainGain||!ac)return;
     var len=ac.sampleRate*2,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0),lp0=0;
@@ -1349,6 +1349,11 @@ sudo bash scripts/kos-setup.sh</code></pre>
     },3000)}
   }
   document.addEventListener('visibilitychange',soundSync);
+  // audio can't start until the visitor interacts; kick it on the first gesture
+  (function(){
+    function kick(){soundSync();if(ac&&ac.state==='running'){document.removeEventListener('pointerdown',kick);document.removeEventListener('keydown',kick);document.removeEventListener('scroll',kick,true)}}
+    document.addEventListener('pointerdown',kick);document.addEventListener('keydown',kick);document.addEventListener('scroll',kick,true);
+  })();
 
   window.__kosRain={
     get:function(){return mode},
