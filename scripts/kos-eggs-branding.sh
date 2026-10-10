@@ -26,6 +26,8 @@ cp -f "$HERE/branding/menu-icon.png" "$DST/artwork/install-system.png"
 
 echo "==> Desktop look for the live user (copies $U's Plasma settings to /etc/skel)"
 eggs tools skel --user "$U" || echo "   (eggs tools skel failed — run it by hand: sudo eggs tools skel --user $U)"
+# drop machine-specific bits: the audio auth cookie/device state and this VM's monitor layout
+rm -rf /etc/skel/.config/pulse /etc/skel/.config/kwinoutputconfig.json
 
 echo
 echo "Done. Now build:  sudo eggs kill && sudo eggs remaster"
