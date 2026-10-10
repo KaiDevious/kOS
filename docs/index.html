@@ -535,7 +535,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
         locked=true;
         out.innerHTML='<img class="april" src="img/april.png" alt="">';
         out.style.padding='0';out.style.overflow='hidden';
-        return null}if(t!=='dark'&&t!=='light')return 'usage: theme dark | theme light';setTheme(t,true);return 'switched to '+t+' theme'},
+        return null}if(t!=='dark'&&t!=='light')return 'usage: theme dark | theme light';if(document.documentElement.getAttribute('data-theme')===t)return t.charAt(0).toUpperCase()+t.slice(1)+' Mode is already enabled!';setTheme(t,true);return 'switched to '+t+' theme'},
     install:function(){document.getElementById('iso').scrollIntoView();return 'opening the install guide...'},
     history:function(){return hist.map(function(h,i){return (i+1)+'  '+esc(h)}).join('\n')||'(empty)'},
     beep:function(){return '<span class="t-d">*silence*</span>  we removed every beep from audio drivers. it took a while.'},
