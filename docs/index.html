@@ -159,6 +159,22 @@
   /* console secret */
   #void{position:fixed;inset:0;z-index:9999;background:#000;padding:18px 20px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:16px;line-height:1.5;color:#33ff66;white-space:pre-wrap;overflow-wrap:anywhere;overflow:hidden}
   #void .cur{animation:blink 1s steps(1) infinite}
+  /* VHS */
+  #void .scr{position:relative;z-index:3;text-shadow:2px 0 rgba(255,0,60,.55),-2px 0 rgba(0,160,255,.55),0 0 8px rgba(51,255,102,.6);animation:jit 3.2s infinite steps(1)}
+  #void .vfx{position:absolute;inset:0;pointer-events:none;z-index:4}
+  #void .vig{z-index:2}
+  #void .scan{background:repeating-linear-gradient(to bottom,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}
+  #void canvas.vfx{width:100%;height:100%;opacity:.07;mix-blend-mode:screen;image-rendering:pixelated}
+  #void .track{height:70px;top:-80px;bottom:auto;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.07) 40%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.07) 60%,transparent);animation:track 7s linear infinite}
+  #void .vig{background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.75) 100%)}
+  #void .flick{background:#fff;opacity:0;animation:flick 4s infinite}
+  #void .osd{position:absolute;z-index:5;color:#f2f2f2;font-size:22px;letter-spacing:.08em;text-shadow:2px 2px 0 rgba(0,0,0,.6),1px 0 rgba(255,0,60,.5),-1px 0 rgba(0,160,255,.5);pointer-events:none}
+  #void .osd.tr{top:18px;right:24px} #void .osd.bl{bottom:18px;left:24px;line-height:1.3} #void .osd.br{bottom:18px;right:24px}
+  #void .play i{font-style:normal;animation:blink 1.6s steps(1) infinite}
+  @keyframes track{0%{transform:translateY(0)}100%{transform:translateY(calc(100vh + 160px))}}
+  @keyframes jit{0%,100%{transform:none}12%{transform:translateX(1px)}13%{transform:translateX(-2px) skewX(-1deg)}14%{transform:none}57%{transform:translateX(-1px)}58%{transform:translateX(3px)}59%{transform:none}}
+  @keyframes flick{0%,96%,100%{opacity:0}97%{opacity:.04}98%{opacity:0}99%{opacity:.06}}
+  @media(prefers-reduced-motion:reduce){#void .scr,#void .track,#void .flick{animation:none}}
   @keyframes blink{50%{opacity:0}}
   footer{border-top:1px solid var(--border);padding-block:34px;color:var(--faint);font-size:13.5px;text-align:center}
   footer a{color:var(--muted)}
@@ -519,9 +535,22 @@ sudo bash scripts/kos-setup.sh</code></pre>
     if(on)return 'already here.';
     on=true;
     var v=document.createElement('div');v.id='void';
+    var scr=document.createElement('div');scr.className='scr';
     var txt=document.createElement('span'),cur=document.createElement('span');
-    cur.className='cur';cur.textContent='_';v.appendChild(txt);v.appendChild(cur);
+    cur.className='cur';cur.textContent='_';scr.appendChild(txt);scr.appendChild(cur);v.appendChild(scr);
+    v.insertAdjacentHTML('beforeend','<canvas class="vfx" width="200" height="120"></canvas><div class="vfx scan"></div><div class="vfx track"></div><div class="vfx vig"></div><div class="vfx flick"></div>'+
+      '<div class="osd tr play">PLAY <i>&#9654;</i></div><div class="osd br">SP</div><div class="osd bl" id="vclock"></div>');
     document.body.appendChild(v);document.body.style.overflow='hidden';
+    // static noise
+    var cv=v.querySelector('canvas'),cx=cv.getContext('2d'),im=cx.createImageData(200,120);
+    var still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (function noise(){for(var i=0;i<im.data.length;i+=4){var n=Math.random()*255|0;im.data[i]=im.data[i+1]=im.data[i+2]=n;im.data[i+3]=255}cx.putImageData(im,0,0);if(!still)setTimeout(noise,70)})();
+    // camcorder clock
+    var M=['JAN.','FEB.','MAR.','APR.','MAY','JUN.','JUL.','AUG.','SEP.','OCT.','NOV.','DEC.'];
+    (function tick(){var d=new Date(),h=d.getHours(),ap=h<12?'AM':'PM';h=h%12||12;
+      function z(n){return (n<10?'0':'')+n}
+      document.getElementById('vclock').innerHTML=ap+' '+h+':'+z(d.getMinutes())+':'+z(d.getSeconds())+'<br>'+M[d.getMonth()]+' '+z(d.getDate())+' '+d.getFullYear();
+      setTimeout(tick,1000)})();
     document.addEventListener('keydown',function(e){
       if(e.ctrlKey||e.metaKey||e.altKey)return;
       if(e.key==='Enter'){txt.textContent+='\n'}
