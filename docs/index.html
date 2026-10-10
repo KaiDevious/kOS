@@ -431,13 +431,13 @@ sudo bash scripts/kos-setup.sh</code></pre>
         return null}if(t!=='dark'&&t!=='light')return 'usage: theme dark | theme light';setTheme(t,true);return 'switched to '+t+' theme'},
     install:function(){document.getElementById('iso').scrollIntoView();return 'opening the install guide...'},
     history:function(){return hist.map(function(h,i){return (i+1)+'  '+esc(h)}).join('\n')||'(empty)'},
-    beep:function(){return '<span class="t-d">*silence*</span>  we removed every beep. it took a while.'},
-    roblox:function(){return '<span class="t-y">Sober couldn\'t find a supported graphics device.</span>\n<span class="t-d">(works on real hardware. not in a VM. trust us.)</span>'},
+    beep:function(){return '<span class="t-d">*silence*</span>  we removed every beep from audio drivers. it took a while.'},
+    roblox:function(){return '<span class="t-y">Sober couldn\'t find a supported graphics device.</span>\n<span class="t-d">(works on real hardware. not in a VM. trust me.)</span>'},
     sober:function(){return cmds.roblox()},
-    sudo:function(a){return a.join(' ').indexOf('rm -rf')>-1?'<span class="t-y">nice try.</span> this terminal is fake, but your files are safe either way.':'[sudo] password for '+esc(user)+': <span class="t-d">********</span>\n'+esc(user)+' is not in the sudoers file. this incident will be reported. (to nobody)'},
+    sudo:function(a){return a.join(' ').indexOf('rm -rf')>-1?'<span class="t-y">nice try.</span> this terminal is fake? real? idk, but your files are not safe either way.':'[sudo] password for '+esc(user)+': <span class="t-d">********</span>\n'+esc(user)+' is not in the sudoers file. this incident will be reported. (to nobody)'},
     exit:function(){return 'there is no escape. (try closing the tab)'},
     bored:function(){return '"im bored" — Kai\nsame tbh.'},
-    kai:function(){return 'built kOS. found the back button on his mouse afterwards.'}
+    kai:function(){return 'built kOS. found the two buttons on the side of a mouse go forth and back a page.'}
   };
   function run(line){
     if(locked)return;
