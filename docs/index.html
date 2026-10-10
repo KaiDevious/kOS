@@ -174,6 +174,17 @@
   #void .play i{font-style:normal;animation:blink 1.6s steps(1) infinite}
   #void .scr.glitch{animation:fullglitch .45s steps(1)}
   @keyframes fullglitch{0%{transform:translate(-8px,2px) skewX(10deg);filter:hue-rotate(120deg) contrast(2)}20%{transform:translate(12px,-4px) scaleY(1.3);filter:brightness(3)}40%{transform:translate(-4px,6px) skewX(-14deg);opacity:.6}60%{transform:scaleY(.05);filter:brightness(5)}80%{transform:translate(6px,0);opacity:.3}100%{opacity:0}}
+  #void.rolling{animation:vshake .18s infinite steps(2)}
+  #void.rolling .scr{animation:vroll .42s linear infinite}
+  #void.rolling canvas.vfx{opacity:.35}
+  #void.rolling .track{height:180px;animation:track .9s linear infinite}
+  #void.rolling .osd{animation:blink .3s infinite steps(1)}
+  @keyframes vroll{0%{transform:translateY(-100vh) skewX(4deg)}100%{transform:translateY(100vh) skewX(-4deg)}}
+  @keyframes vshake{0%{transform:translate(0,0);filter:hue-rotate(0)}50%{transform:translate(-6px,3px);filter:hue-rotate(60deg) contrast(1.6)}100%{transform:translate(4px,-2px)}}
+  #void.bare{background:#000;display:grid;place-items:center}
+  #void .vfile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 14px;border:1px solid transparent;cursor:default;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:14px;color:#e6e6e6;outline:none}
+  #void .vfile svg{width:56px;height:70px}
+  #void .vfile:hover,#void .vfile:focus{background:rgba(51,255,102,.18);border-color:#33ff66}
   #void.kick{animation:kick .65s steps(1) forwards}
   @keyframes kick{0%{transform:none;filter:none}15%{transform:translate(-12px,4px) skewX(8deg);filter:hue-rotate(90deg) contrast(2)}30%{transform:scaleY(.02);filter:brightness(4)}45%{transform:translate(10px,-3px) skewX(-6deg)}60%{transform:scale(1,.004);filter:brightness(6)}80%{opacity:.4;transform:scale(.002,.002)}100%{opacity:0;transform:scale(0)}}
   .t-deny{display:inline-block;color:#33ff66;font-weight:700;letter-spacing:.06em;text-shadow:2px 0 rgba(255,0,60,.7),-2px 0 rgba(0,160,255,.7),0 0 8px rgba(51,255,102,.7);animation:jit 1.1s infinite steps(1),blink 2.2s infinite steps(1)}
@@ -636,7 +647,34 @@ sudo bash scripts/kos-setup.sh</code></pre>
       var e=document.createElement('span');e.className='ent';e.textContent='\u21B5';scr.insertBefore(e,cur);
       setTimeout(function(){scr.removeChild(e);click();txt.textContent+='\n';done()},450);
     }
-    setTimeout(function(){
+    var noTerm=document.getElementById('term').hidden;
+    if(noTerm){
+      // the site terminal was deleted: nothing to talk through
+      setTimeout(function(){
+        typeOut('OH... YOU DONT HAVE A WAY TO TALK TO ME',function(){
+          setTimeout(function(){pressEnter(function(){
+            setTimeout(function(){
+              typeOut('WELL THEN. I SHALL SEND YOU BACK... IN A BETTER WAY.',function(){
+                setTimeout(roll,1200);
+              });
+            },1000);
+          })},1000);
+        });
+      },1000);
+    }
+    function roll(){
+      click();v.classList.add('rolling');
+      setTimeout(function(){
+        Array.prototype.slice.call(v.children).forEach(function(c){if(c!==scr)v.removeChild(c)});
+        v.classList.remove('rolling');v.classList.add('bare');
+        scr.style.display='none';
+        v.insertAdjacentHTML('beforeend',
+          '<div class="vfile" tabindex="0" role="button" aria-label="LOGS.txt">'+
+          '<svg viewBox="0 0 48 60" aria-hidden="true"><path d="M4 2h28l12 12v44H4z" fill="#d9d9d9"/><path d="M32 2v12h12" fill="#9a9a9a"/><g stroke="#7a7a7a" stroke-width="2"><path d="M11 24h26M11 31h26M11 38h26M11 45h18"/></g></svg>'+
+          '<span>LOGS.txt</span></div>');
+      },5000);
+    }
+    if(!noTerm)setTimeout(function(){
       typeOut('HELLO...?',function(){
         setTimeout(function(){pressEnter(function(){
           setTimeout(function(){
