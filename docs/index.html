@@ -127,7 +127,7 @@
   .term .bar i{width:11px;height:11px;border-radius:50%;background:#2a3444}
   .term .bar span{margin-left:8px;color:#8694A6;font-size:12.5px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
   .term .out{height:360px;overflow-y:auto;padding:14px 16px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;line-height:1.55;color:#E7EEF6;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
-  .term .ln{display:flex;gap:8px}
+  .term .ln{display:flex;gap:0;white-space:pre}
   .term input{flex:1;min-width:0;background:none;border:0;outline:0;color:#E7EEF6;font:inherit;caret-color:#86C8FF}
   .t-p{color:#5fd7ff} .t-b{color:#86C8FF} .t-d{color:#8694A6} .t-g{color:#3ddc84} .t-y{color:#f5c76b} .t-k{color:#2C62CF;font-weight:700}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -204,7 +204,7 @@
   <h2>Try the kOS terminal</h2>
   <p class="lead">A pretend kOS terminal, right in your browser. Type <code>help</code> to see what it can do.</p>
   <div class="term" id="term">
-    <div class="bar"><i></i><i></i><i></i><span>kai@kos: ~</span></div>
+    <div class="bar"><i></i><i></i><i></i><span id="tbar">you@kos: ~</span></div>
     <div class="out" id="tout" aria-live="polite"></div>
   </div>
   <div class="chips" id="chips">
@@ -385,23 +385,33 @@ sudo bash scripts/kos-setup.sh</code></pre>
 
   /* ---------- fake terminal ---------- */
   var out=document.getElementById('tout'), hist=[], hi=0, input;
+  var user='you'; try{user=localStorage.getItem('kos-user')||'you'}catch(e){}
+  function setBar(){document.getElementById('tbar').textContent=user+'@kos: ~'}
+  setBar();
   var ASCII=['    _    ___  ___ ','   | |  / _ \\/ __|','   | |_| (_) \\__ \\','   |_(_)\\___/|___/ ','                  '];
   function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
   function print(html){var d=document.createElement('div');d.innerHTML=html;out.insertBefore(d,input?input.parentNode:null);out.scrollTop=out.scrollHeight}
-  function prompt(){return '<span class="t-p">kai@kos</span>:<span class="t-b">~</span>$ '}
+  function prompt(){return '<span class="t-p">'+esc(user)+'@kos</span>:<span class="t-b">~</span>$ '}
   function fastfetch(){
-    var info=['<span class="t-p">kai</span>@<span class="t-p">kos</span>','<span class="t-d">-------</span>',
+    var info=['<span class="t-p">'+esc(user)+'</span>@<span class="t-p">kos</span>','<span class="t-d">'+'-'.repeat(user.length+4)+'</span>',
       '<span class="t-b">OS</span>: kOS x86_64','<span class="t-b">Base</span>: Kali Linux (rolling)','<span class="t-b">DE</span>: KDE Plasma 6',
       '<span class="t-b">Shell</span>: zsh','<span class="t-b">Audio</span>: PulseAudio (no beeps)','<span class="t-b">Motto</span>: "im bored"'];
-    var lines=[];for(var i=0;i<Math.max(ASCII.length,info.length);i++){lines.push('<span class="t-k">'+esc(ASCII[i]||'                  ')+'</span>   '+(info[i]||''))}
+    var lines=[];for(var i=0;i<Math.max(ASCII.length,info.length);i++){lines.push('<span class="t-k">'+esc((ASCII[i]||'').padEnd(19))+'</span>  '+(info[i]||''))}
     return lines.join('\n')+'\n';
   }
   var started=Date.now();
   var cmds={
-    help:function(){return 'commands: <span class="t-b">fastfetch  motd  whoami  uname  ls  cat readme.txt  date  uptime  echo  theme [dark|light]  install  history  clear</span>\n<span class="t-d">(there may be a few secret ones)</span>'},
+    help:function(){return 'commands: <span class="t-b">fastfetch  motd  name  whoami  uname  ls  cat readme.txt  date  uptime  echo  theme [dark|light]  install  history  clear</span>\n<span class="t-d">(there may be a few secret ones)</span>'},
     fastfetch:fastfetch, neofetch:fastfetch,
     motd:function(){return motdText?esc(motdText):'<span class="t-d">(no message right now)</span>'},
-    whoami:function(){return 'kai'},
+    whoami:function(){return esc(user)},
+    name:function(a){
+      var n=(a[0]||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,20);
+      if(!n)return 'usage: name &lt;your-name&gt;   (letters, numbers, - and _)';
+      user=n;try{localStorage.setItem('kos-user',n)}catch(e){}
+      setBar();
+      input.parentNode.querySelector('.pr').innerHTML=prompt();
+      return 'hi '+esc(n)+'. welcome to kOS.'},
     uname:function(a){return a[0]==='-a'?'Linux kos 6.x-kos #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux':'Linux'},
     ls:function(){return '<span class="t-b">Desktop</span>  <span class="t-b">Documents</span>  <span class="t-b">Downloads</span>  readme.txt  <span class="t-g">kos-setup.sh</span>'},
     cat:function(a){
@@ -418,7 +428,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     beep:function(){return '<span class="t-d">*silence*</span>  we removed every beep. it took a while.'},
     roblox:function(){return '<span class="t-y">Sober couldn\'t find a supported graphics device.</span>\n<span class="t-d">(works on real hardware. not in a VM. trust us.)</span>'},
     sober:function(){return cmds.roblox()},
-    sudo:function(a){return a.join(' ').indexOf('rm -rf')>-1?'<span class="t-y">nice try.</span> this terminal is fake, but your files are safe either way.':'[sudo] password for kai: <span class="t-d">********</span>\nkai is not in the sudoers file. this incident will be reported. (to nobody)'},
+    sudo:function(a){return a.join(' ').indexOf('rm -rf')>-1?'<span class="t-y">nice try.</span> this terminal is fake, but your files are safe either way.':'[sudo] password for '+esc(user)+': <span class="t-d">********</span>\n'+esc(user)+' is not in the sudoers file. this incident will be reported. (to nobody)'},
     exit:function(){return 'there is no escape. (try closing the tab)'},
     bored:function(){return '"im bored" — Kai\nsame tbh.'},
     kai:function(){return 'built kOS. found the back button on his mouse afterwards.'}
@@ -434,7 +444,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     print(fn?fn(args):'zsh: command not found: '+esc(name)+'  <span class="t-d">(type help)</span>');
   }
   var ln=document.createElement('div');ln.className='ln';
-  ln.innerHTML=prompt();
+  ln.innerHTML='<span class="pr">'+prompt()+'</span>';
   input=document.createElement('input');input.setAttribute('aria-label','Terminal input');input.autocomplete='off';input.spellcheck=false;input.setAttribute('autocapitalize','off');
   ln.appendChild(input);out.appendChild(ln);
   print(fastfetch());
