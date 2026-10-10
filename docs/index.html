@@ -128,6 +128,7 @@
   .term .bar span{margin-left:8px;color:#8694A6;font-size:12.5px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
   .term .out{height:360px;overflow-y:auto;padding:14px 16px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;line-height:1.55;color:#E7EEF6;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
   .term .ln{display:flex;gap:0;white-space:pre}
+  .term .april{width:100%;height:100%;object-fit:contain;background:#00a2e8;display:block}
   .term input{flex:1;min-width:0;background:none;border:0;outline:0;color:#E7EEF6;font:inherit;caret-color:#86C8FF}
   .t-p{color:#5fd7ff} .t-b{color:#86C8FF} .t-d{color:#8694A6} .t-g{color:#3ddc84} .t-y{color:#f5c76b} .t-k{color:#2C62CF;font-weight:700}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -384,7 +385,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   }).catch(function(){return null});
 
   /* ---------- fake terminal ---------- */
-  var out=document.getElementById('tout'), hist=[], hi=0, input;
+  var out=document.getElementById('tout'), hist=[], hi=0, input, locked=false;
   var user='you'; try{user=localStorage.getItem('kos-user')||'you'}catch(e){}
   function setBar(){document.getElementById('tbar').textContent=user+'@kos: ~'}
   setBar();
@@ -422,7 +423,12 @@ sudo bash scripts/kos-setup.sh</code></pre>
     date:function(){return new Date().toString()},
     uptime:function(){var s=Math.floor((Date.now()-started)/1000);return 'up '+Math.floor(s/60)+' min, '+(s%60)+' sec'},
     echo:function(a){return esc(a.join(' '))},
-    theme:function(a){var t=a[0];if(t!=='dark'&&t!=='light')return 'usage: theme dark | theme light';setTheme(t,true);return 'switched to '+t+' theme'},
+    theme:function(a){var t=a[0];
+      if(t==='april'){
+        locked=true;
+        out.innerHTML='<img class="april" src="img/april.png" alt="">';
+        out.style.padding='0';out.style.overflow='hidden';
+        return null}if(t!=='dark'&&t!=='light')return 'usage: theme dark | theme light';setTheme(t,true);return 'switched to '+t+' theme'},
     install:function(){document.getElementById('iso').scrollIntoView();return 'opening the install guide...'},
     history:function(){return hist.map(function(h,i){return (i+1)+'  '+esc(h)}).join('\n')||'(empty)'},
     beep:function(){return '<span class="t-d">*silence*</span>  we removed every beep. it took a while.'},
@@ -434,6 +440,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     kai:function(){return 'built kOS. found the back button on his mouse afterwards.'}
   };
   function run(line){
+    if(locked)return;
     var raw=line.trim();
     print(prompt()+esc(raw));
     if(!raw)return;
@@ -441,7 +448,9 @@ sudo bash scripts/kos-setup.sh</code></pre>
     var parts=raw.split(/\s+/),name=parts[0].toLowerCase(),args=parts.slice(1);
     if(name==='clear'){Array.prototype.slice.call(out.children).forEach(function(c){if(c!==input.parentNode)out.removeChild(c)});return}
     var fn=cmds[name];
-    print(fn?fn(args):'zsh: command not found: '+esc(name)+'  <span class="t-d">(type help)</span>');
+    var res=fn?fn(args):undefined;
+    if(locked)return;
+    print(fn?res:'zsh: command not found: '+esc(name)+'  <span class="t-d">(type help)</span>');
   }
   var ln=document.createElement('div');ln.className='ln';
   ln.innerHTML='<span class="pr">'+prompt()+'</span>';
