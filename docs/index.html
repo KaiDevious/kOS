@@ -74,6 +74,23 @@
 
   .note{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:10px;padding:16px 18px;color:var(--muted);font-size:14px;margin-top:30px}
 
+  .install>*,.paths>*,.features>*{min-width:0}
+  section{scroll-margin-top:72px}
+  /* ISO guide */
+  .reqs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px}
+  .req{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-size:13.5px;color:var(--muted)}
+  .req b{color:var(--fg);font-weight:600}
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  @media(max-width:760px){.paths{grid-template-columns:1fr}}
+  ol.steps{list-style:none;counter-reset:s;display:grid;gap:12px}
+  ol.steps>li{counter-increment:s;position:relative;padding-left:40px;color:var(--muted);font-size:14.5px}
+  ol.steps>li::before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--lb);font-family:var(--display);font-weight:700;font-size:13px;display:grid;place-items:center}
+  ol.steps>li b{color:var(--fg);font-weight:600}
+  .step ol.steps>li{font-size:14px}
+  .figure{margin-top:24px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface)}
+  .figure img{width:100%;aspect-ratio:16/9;object-fit:cover}
+  .figure span{display:block;padding:10px 14px;color:var(--muted);font-size:13px;border-top:1px solid var(--border)}
+  .figure.missing{display:none}
   footer{border-top:1px solid var(--border);padding-block:34px;color:var(--faint);font-size:13.5px;text-align:center}
   footer a{color:var(--muted)}
 </style>
@@ -129,7 +146,7 @@
       <div class="n">Option 1</div>
       <h3>Install the full kOS</h3>
       <p>Download the ISO and install it in a virtual machine or on a real computer.</p>
-      <a class="btn btn-ghost" href="https://github.com/KaiDevious/kOS/releases">Get the ISO</a>
+      <a class="btn btn-ghost" href="#iso">How to install the ISO</a>
     </div>
     <div class="step">
       <div class="n">Option 2</div>
@@ -151,6 +168,66 @@ sudo bash scripts/kos-setup.sh</code></pre>
     kOS is a personal project made for fun and learning. Because it's based on Kali, it includes security tools — only use those on devices and networks you own or have permission to test.
   </div>
 </section>
+
+<section class="wrap" id="iso">
+  <h2>Installing the kOS ISO</h2>
+  <p class="lead">Try kOS in a virtual machine first, or put it on a USB stick to run it on a real computer.</p>
+
+  <div class="reqs">
+    <span class="req"><b>64-bit</b> PC</span>
+    <span class="req"><b>4 GB</b> RAM or more</span>
+    <span class="req"><b>30 GB</b> free disk space</span>
+    <span class="req"><b>16 GB</b> USB stick (USB method)</span>
+  </div>
+
+  <div class="paths">
+    <div class="step">
+      <div class="n">Path A</div>
+      <h3>In a virtual machine</h3>
+      <p>Safest way to try it. Nothing on your computer changes.</p>
+      <ol class="steps">
+        <li>Download <b>kOS.iso</b> and install <b>VirtualBox</b>.</li>
+        <li>Click <b>New</b>. Type: Linux, Version: Debian (64-bit).</li>
+        <li>Give it <b>4 GB+ RAM</b>, <b>2+ CPUs</b>, and a <b>30 GB+</b> disk.</li>
+        <li>In Settings, set Display to <b>VMSVGA</b> and attach kOS.iso as the optical drive.</li>
+      </ol>
+    </div>
+    <div class="step">
+      <div class="n">Path B</div>
+      <h3>On a real computer</h3>
+      <p>Full speed, using your real graphics card. Back up your files first.</p>
+      <ol class="steps">
+        <li>Download <b>kOS.iso</b> and a USB tool: <b>Ventoy</b> or <b>Rufus</b>.</li>
+        <li>Write the ISO to the USB stick (with Ventoy, just copy the file onto it).</li>
+        <li>Restart and open the boot menu (usually <b>F12</b>, <b>F11</b>, or <b>Esc</b>).</li>
+        <li>Pick the USB stick.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">Then</div>
+    <h3>Boot and install</h3>
+    <ol class="steps">
+      <li>At the boot menu, choose <b>Start kOS</b>. It starts on its own after 5 seconds.</li>
+      <li>You're now in the live desktop. Try it out, nothing is installed yet.</li>
+      <li>Double-click <b>Install kOS</b> on the desktop.</li>
+      <li>Pick your language, time zone and keyboard, then choose where to install. <b>Erase disk</b> wipes the whole drive, so only use it on a VM or a computer you're OK wiping.</li>
+      <li>Create your user account and click <b>Install</b>.</li>
+      <li>When it's done, shut down, remove the ISO or USB stick, and turn it back on. Welcome to kOS.</li>
+    </ol>
+  </div>
+
+  <figure class="figure">
+    <img src="img/installer.png" alt="The kOS installer" onerror="this.parentElement.classList.add('missing')">
+    <span>The kOS installer</span>
+  </figure>
+
+  <div class="note">
+    <b>Stuck?</b> If the screen is black or garbled after booting, choose <b>Start kOS (safe graphics)</b> from the boot menu. Questions and bugs go on <a href="https://github.com/KaiDevious/kOS/issues">GitHub Issues</a>.
+  </div>
+</section>
+
 
 <footer>
   <div class="wrap">
