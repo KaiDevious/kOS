@@ -156,6 +156,21 @@
   .log li{color:var(--muted);font-size:14px}
   .log li b{color:var(--fg);font-weight:600}
   @media(prefers-reduced-motion:reduce){.motd .dot{animation:none} html{scroll-behavior:auto}}
+  /* feedback */
+  .fb{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;display:grid;gap:14px;max-width:720px}
+  .fb .kinds{display:flex;flex-wrap:wrap;gap:8px;border:0}
+  .fb .kinds legend{font-size:13px;color:var(--muted);margin-bottom:8px}
+  .fb .kinds label{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--border);border-radius:999px;font-size:14px;color:var(--fg);cursor:pointer;background:var(--surface2)}
+  .fb .kinds input{accent-color:var(--blue)}
+  .fb .kinds label:has(input:checked){border-color:var(--blue);background:color-mix(in srgb,var(--blue) 18%,var(--surface2))}
+  .fb label.t{font-size:13px;color:var(--muted);display:grid;gap:6px}
+  .fb input[type=text],.fb textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--fg);font:inherit;font-size:15px}
+  .fb textarea{min-height:130px;resize:vertical}
+  .fb input:focus,.fb textarea:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:transparent}
+  .fb .row{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+  .fb .row small{color:var(--faint);font-size:12.5px;flex:1;min-width:220px}
+  .fb button{cursor:pointer}
+  .fb button:disabled{opacity:.5;cursor:not-allowed}
   /* coins toast */
   .coin-toast{position:fixed;left:16px;bottom:16px;z-index:9000;display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;background:#0b0d10;border:1px solid #3a2f12;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#f3e6c4;font-family:var(--display);animation:coinIn .35s ease-out,coinOut .8s ease-in 3s forwards}
   .coin-toast .c{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#f5c542 45%,#b9851b);box-shadow:inset 0 0 0 3px #d9a52b,0 0 14px rgba(245,197,66,.45);display:grid;place-items:center;color:#7a5410;font-weight:800;font-size:15px}
@@ -230,6 +245,7 @@
       <a class="hide-sm" href="#try">Try it</a>
       <a class="hide-sm" href="#iso">Install</a>
       <a class="hide-sm" href="#faq">FAQ</a>
+      <a class="hide-sm" href="#feedback">Feedback</a>
       <a href="https://github.com/KaiDevious/kOS">GitHub</a>
       <button class="tbtn" id="themeBtn" type="button" aria-label="Switch dark or light theme" title="Switch theme">
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -378,6 +394,30 @@ sudo bash scripts/kos-setup.sh</code></pre>
   </div>
 </section>
 
+
+<section class="wrap" id="feedback">
+  <h2>Feedback</h2>
+  <p class="lead">Found a bug, have an idea, or just want to say something? Send it here and Kai will see it.</p>
+  <form class="fb" id="fbForm">
+    <fieldset class="kinds">
+      <legend>What kind?</legend>
+      <label><input type="radio" name="kind" value="Bug" checked> Bug</label>
+      <label><input type="radio" name="kind" value="Idea"> Idea</label>
+      <label><input type="radio" name="kind" value="Question"> Question</label>
+      <label><input type="radio" name="kind" value="Other"> Other</label>
+    </fieldset>
+    <label class="t">Title
+      <input type="text" id="fbTitle" maxlength="100" placeholder="Short summary" required>
+    </label>
+    <label class="t">Message
+      <textarea id="fbMsg" maxlength="4000" placeholder="What happened, or what's your idea?" required></textarea>
+    </label>
+    <div class="row">
+      <button class="btn btn-primary" type="submit" id="fbSend" disabled>Send on GitHub</button>
+      <small>Opens GitHub with your message filled in, then click <b>Create</b>. You need a free GitHub account. Feedback is public, so don't include passwords or personal info.</small>
+    </div>
+  </form>
+</section>
 
 <section class="wrap" id="faq">
   <div class="two">
@@ -817,6 +857,21 @@ sudo bash scripts/kos-setup.sh</code></pre>
   try{Object.defineProperty(window,'COINRESET',{get:coinReset,configurable:true})}catch(e){}
   ['kos','hack','matrix','sudo'].forEach(function(w){
     try{Object.defineProperty(window,w,{get:enter,configurable:true})}catch(e){}
+  });
+})();
+</script>
+<script>
+(function(){
+  var f=document.getElementById('fbForm'),t=document.getElementById('fbTitle'),m=document.getElementById('fbMsg'),b=document.getElementById('fbSend');
+  function check(){b.disabled=!(t.value.trim()&&m.value.trim())}
+  t.addEventListener('input',check);m.addEventListener('input',check);
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var kind=(f.querySelector('input[name=kind]:checked')||{}).value||'Other';
+    var title='['+kind+'] '+t.value.trim();
+    var body=m.value.trim()+'\n\n---\n_Sent from the kOS website feedback form._';
+    var url='https://github.com/KaiDevious/kOS/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent(body);
+    window.open(url,'_blank','noopener');
   });
 })();
 </script>
