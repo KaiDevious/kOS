@@ -25,6 +25,11 @@ grep -q 'unsetopt BEEP' /etc/zsh/zshrc 2>/dev/null || echo 'unsetopt BEEP' >> /e
 grep -q 'bell-style none' /etc/inputrc 2>/dev/null || echo 'set bell-style none' >> /etc/inputrc
 mkdir -p /etc/xdg && printf '[Bell]\nSystemBell=false\nVisibleBell=false\n' > /etc/xdg/kaccessrc
 
+# PipeWire pops/beeps in VMs; PulseAudio doesn't. Switch for every user.
+apt-get install -y pulseaudio pavucontrol >/dev/null 2>&1 || true
+systemctl --global disable pipewire.socket pipewire.service pipewire-pulse.socket pipewire-pulse.service wireplumber.service >/dev/null 2>&1 || true
+systemctl --global enable pulseaudio.socket pulseaudio.service >/dev/null 2>&1 || true
+
 say "3/8  fastfetch with the kOS logo"
 apt-get install -y fastfetch >/dev/null 2>&1 || true
 mkdir -p /usr/share/kos /etc/xdg/fastfetch
