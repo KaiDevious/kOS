@@ -1178,37 +1178,62 @@ sudo bash scripts/kos-setup.sh</code></pre>
     document.body.appendChild(fc);fx=fc.getContext('2d');fsize();
     addEventListener('resize',function(){if(fc)fsize()});
   }
+  // rain falls toward your mouse: point above the middle of the screen and it falls up
+  var gx=0,gy=1,tx=0,ty=1,mouseSeen=false;
+  addEventListener('pointermove',function(e){
+    if(e.pointerType==='touch')return;
+    var dx=e.clientX-FW/2,dy=e.clientY-FH/2,l=Math.hypot(dx,dy);
+    if(l<40){tx=0;ty=1}else{tx=dx/l;ty=dy/l}mouseSeen=true;
+  },{passive:true});
+  document.addEventListener('mouseleave',function(){tx=0;ty=1});
   function fspawn(){
     var z=Math.random();z=z*z*.75+.25;               // more far drops than near ones
-    fdrops.push({x:Math.random()*(FW+200)-100,y:-30-Math.random()*60,z:z,v:.55+z*1.25,len:9+z*26,w:.5+z*1.2,a:.12+z*.55,c:Math.random()<.18?2:(Math.random()<.5?0:1)});
+    // pick a spot on screen, then back it up against the fall until it's just off screen
+    var px=Math.random()*FW,py=Math.random()*FH,t=1e9;
+    if(gx>1e-3)t=Math.min(t,px/gx);if(gx<-1e-3)t=Math.min(t,(FW-px)/-gx);
+    if(gy>1e-3)t=Math.min(t,py/gy);if(gy<-1e-3)t=Math.min(t,(FH-py)/-gy);
+    var back=t+20+Math.random()*60;
+    fdrops.push({x:px-gx*back,y:py-gy*back,z:z,v:.55+z*1.25,len:9+z*26,w:.5+z*1.2,a:.12+z*.55,c:Math.random()<.18?2:(Math.random()<.5?0:1)});
   }
   function ffr(t){
     fraf=0;if(mode!=='full'){fx.clearRect(0,0,FW,FH);fdrops.length=fsplash.length=fring.length=0;return}
     var dt=Math.min(50,t-(flast||t));flast=t;wt+=dt;
-    wind=Math.sin(wt/2600)*.12+Math.sin(wt/900)*.04+.1;   // a slow, gusty slant
+    // ease the fall direction toward the mouse, plus a gusty sideways slant
+    var k=1-Math.exp(-dt/320);gx+=(tx-gx)*k;gy+=(ty-gy)*k;var gl=Math.hypot(gx,gy)||1;gx/=gl;gy/=gl;
+    wind=Math.sin(wt/2600)*.12+Math.sin(wt/900)*.04+.1;
+    var dxu=gx-gy*wind,dyu=gy+gx*wind,du=Math.hypot(dxu,dyu);dxu/=du;dyu/=du;   // direction with wind
     facc+=dt*(FW*FH/1e6)*.30;
     while(facc>1){fspawn();facc--}
     fx.clearRect(0,0,FW,FH);fx.lineCap='round';
-    var cols=[colA,colB,'#e8f4ff'],floorY=FH-1;
+    var cols=[colA,colB,'#e8f4ff'],hd=document.querySelector('header'),topY=hd?Math.max(0,hd.getBoundingClientRect().bottom):0;
     for(var i=fdrops.length-1;i>=0;i--){
-      var d=fdrops[i];d.v+=.0009*dt*d.z;var dy=d.v*dt,dx=dy*wind;d.y+=dy;d.x+=dx;
-      if(d.y>=floorY){
-        // splash: a ring + a few droplets that bounce up and fall back
-        if(d.z>.45){fring.push({x:d.x,r:1,a:.25+d.z*.3,z:d.z});
-          var n=1+((d.z*3)|0);for(var k=0;k<n;k++)fsplash.push({x:d.x,y:floorY,vx:(Math.random()-.5)*.35+wind*.4,vy:-(.18+Math.random()*.32)*d.z,a:.6*d.z,c:d.c})}
+      var d=fdrops[i];d.v+=.0009*dt*d.z;var step=d.v*dt;d.x+=dxu*step;d.y+=dyu*step;
+      var edge=d.y>=FH&&dyu>0?'b':d.y<=topY&&dyu<0?'t':d.x>=FW&&dxu>0?'r':d.x<=0&&dxu<0?'l':'';
+      if(!edge&&(d.x<-400||d.x>FW+400||d.y<-400||d.y>FH+400)){fdrops.splice(i,1);continue}
+      if(edge){
+        var sx=Math.max(0,Math.min(FW,d.x)),sy=Math.max(topY,Math.min(FH,d.y));
+        var nx=edge==='l'?1:edge==='r'?-1:0,ny=edge==='t'?1:edge==='b'?-1:0;   // bounce away from the edge hit
+        if(d.z>.45){fring.push({x:sx,y:sy,r:1,a:.25+d.z*.3,z:d.z,e:edge});
+          var n=1+((d.z*3)|0);for(var q=0;q<n;q++){var j=(Math.random()-.5)*.35;
+            fsplash.push({x:sx,y:sy,vx:nx*(.18+Math.random()*.32)*d.z+(ny?j:0),vy:ny*(.18+Math.random()*.32)*d.z+(nx?j:0),gx:dxu,gy:dyu,a:.6*d.z,c:d.c})}}
         fdrops.splice(i,1);continue;
       }
       fx.globalAlpha=d.a;fx.strokeStyle=cols[d.c];fx.lineWidth=d.w;
-      fx.beginPath();fx.moveTo(d.x-d.len*wind,d.y-d.len);fx.lineTo(d.x,d.y);fx.stroke();
+      fx.beginPath();fx.moveTo(d.x-dxu*d.len,d.y-dyu*d.len);fx.lineTo(d.x,d.y);fx.stroke();
     }
-    for(var j=fsplash.length-1;j>=0;j--){
-      var p=fsplash[j];p.vy+=.0012*dt;p.x+=p.vx*dt*.4;p.y+=p.vy*dt*.4;p.a-=.0011*dt;
-      if(p.a<=0||p.y>floorY+1){fsplash.splice(j,1);continue}
+    for(var j2=fsplash.length-1;j2>=0;j2--){
+      var p=fsplash[j2];p.vx+=p.gx*.0012*dt;p.vy+=p.gy*.0012*dt;p.x+=p.vx*dt*.4;p.y+=p.vy*dt*.4;p.a-=.0011*dt;
+      if(p.a<=0||p.x<-2||p.x>FW+2||p.y<topY-2||p.y>FH+2){fsplash.splice(j2,1);continue}
       fx.globalAlpha=p.a;fx.fillStyle=cols[p.c];fx.beginPath();fx.arc(p.x,p.y,1.1,0,Math.PI*2);fx.fill();
     }
-    for(var q=fring.length-1;q>=0;q--){
-      var r=fring[q];r.r+=dt*.035*r.z;r.a-=dt*.0009;if(r.a<=0){fring.splice(q,1);continue}
-      fx.globalAlpha=r.a;fx.strokeStyle=colA;fx.lineWidth=1;fx.beginPath();fx.ellipse(r.x,floorY,r.r*3.2,r.r*.7,0,Math.PI,Math.PI*2);fx.stroke();
+    for(var q2=fring.length-1;q2>=0;q2--){
+      var r=fring[q2];r.r+=dt*.035*r.z;r.a-=dt*.0009;if(r.a<=0){fring.splice(q2,1);continue}
+      fx.globalAlpha=r.a;fx.strokeStyle=colA;fx.lineWidth=1;fx.beginPath();
+      if(r.e==='b')fx.ellipse(r.x,FH,r.r*3.2,r.r*.7,0,Math.PI,Math.PI*2);
+      else if(r.e==='t')fx.ellipse(r.x,topY,r.r*3.2,r.r*.7,0,0,Math.PI);
+      else if(r.e==='l')fx.ellipse(0,r.y,r.r*.7,r.r*3.2,0,-Math.PI/2,Math.PI/2);
+      else fx.ellipse(FW,r.y,r.r*.7,r.r*3.2,0,Math.PI/2,Math.PI*1.5);
+      fx.stroke();
     }
     fx.globalAlpha=1;
     if(!document.hidden)fraf=requestAnimationFrame(ffr);
