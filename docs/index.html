@@ -177,6 +177,7 @@
   #void.kick{animation:kick .65s steps(1) forwards}
   @keyframes kick{0%{transform:none;filter:none}15%{transform:translate(-12px,4px) skewX(8deg);filter:hue-rotate(90deg) contrast(2)}30%{transform:scaleY(.02);filter:brightness(4)}45%{transform:translate(10px,-3px) skewX(-6deg)}60%{transform:scale(1,.004);filter:brightness(6)}80%{opacity:.4;transform:scale(.002,.002)}100%{opacity:0;transform:scale(0)}}
   .t-deny{display:inline-block;color:#33ff66;font-weight:700;letter-spacing:.06em;text-shadow:2px 0 rgba(255,0,60,.7),-2px 0 rgba(0,160,255,.7),0 0 8px rgba(51,255,102,.7);animation:jit 1.1s infinite steps(1),blink 2.2s infinite steps(1)}
+  .term input.t-deny-in{color:#33ff66;font-weight:700;letter-spacing:.06em;text-shadow:2px 0 rgba(255,0,60,.7),-2px 0 rgba(0,160,255,.7),0 0 8px rgba(51,255,102,.7);animation:jit 1.1s infinite steps(1)}
   @keyframes track{0%{transform:translateY(0)}100%{transform:translateY(calc(100vh + 160px))}}
   @keyframes jit{0%,100%{transform:none}12%{transform:translateX(1px)}13%{transform:translateX(-2px) skewX(-1deg)}14%{transform:none}57%{transform:translateX(-1px)}58%{transform:translateX(3px)}59%{transform:none}}
   @keyframes flick{0%,96%,100%{opacity:0}97%{opacity:.04}98%{opacity:0}99%{opacity:.06}}
@@ -486,6 +487,12 @@ sudo bash scripts/kos-setup.sh</code></pre>
   function run(line){
     if(locked)return;
     var raw=line.trim();
+    input.classList.remove('t-deny-in');
+    if(window.__kosDenied&&isMagic(raw)){
+      print(prompt()+'<span class="t-deny">'+esc(raw)+'</span>');
+      setTimeout(function(){print('<span class="t-deny">ACCESS GRANTED.</span>');window.__kosDenied=false},900);
+      return;
+    }
     print(prompt()+esc(raw));
     if(!raw)return;
     if(window.__kosDenied){print('<span class="t-deny">ACCESS DENIED.</span>');return}
@@ -519,6 +526,10 @@ sudo bash scripts/kos-setup.sh</code></pre>
       print(fastfetch());
       input.focus({preventScroll:true});
     }
+  });
+  function isMagic(v){return /^access denied\.?$/i.test(v.trim())}
+  input.addEventListener('input',function(){
+    input.classList.toggle('t-deny-in',!!window.__kosDenied&&isMagic(input.value));
   });
   input.addEventListener('keydown',function(e){
     if(e.key==='Enter'){run(input.value);input.value=''}
