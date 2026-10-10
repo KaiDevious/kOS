@@ -18,9 +18,12 @@ sed -i 's/^NAME=.*/NAME="kOS"/; s/^PRETTY_NAME=.*/PRETTY_NAME="kOS"/' /etc/os-re
 [ -f /etc/lsb-release ] && sed -i 's/^DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION="kOS"/' /etc/lsb-release
 
 say "2/8  Silencing the PC-speaker beep"
-echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
-echo 'unsetopt BEEP' >> /etc/zsh/zshrc 2>/dev/null || true
-rmmod pcspkr 2>/dev/null || true
+printf 'blacklist pcspkr\nblacklist snd_pcsp\n' > /etc/modprobe.d/nobeep.conf
+rmmod pcspkr snd_pcsp 2>/dev/null || true
+mkdir -p /etc/zsh
+grep -q 'unsetopt BEEP' /etc/zsh/zshrc 2>/dev/null || echo 'unsetopt BEEP' >> /etc/zsh/zshrc
+grep -q 'bell-style none' /etc/inputrc 2>/dev/null || echo 'set bell-style none' >> /etc/inputrc
+mkdir -p /etc/xdg && printf '[Bell]\nSystemBell=false\nVisibleBell=false\n' > /etc/xdg/kaccessrc
 
 say "3/8  fastfetch with the kOS logo"
 apt-get install -y fastfetch >/dev/null 2>&1 || true
