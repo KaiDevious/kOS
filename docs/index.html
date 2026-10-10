@@ -190,6 +190,8 @@
   #void .vglitch{color:#33ff66;font-weight:700;letter-spacing:.12em;text-shadow:2px 0 rgba(255,0,60,.7),-2px 0 rgba(0,160,255,.7),0 0 10px rgba(51,255,102,.7);animation:jit 1.1s infinite steps(1);display:inline-block}
   #void .vwin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));background:#000;border:2px solid #33ff66;box-shadow:0 0 0 1px #000,0 0 24px rgba(51,255,102,.25);display:flex;flex-direction:column;z-index:6}
   #void .vwin.full{left:0;top:0;transform:none;width:100%;height:100%;border-width:0}
+  #void .vfile{touch-action:none;user-select:none}
+  #void .vwin:not(.full) .vwin-bar{cursor:move;touch-action:none;user-select:none}
   #void .vwin-bar{display:flex;align-items:center;gap:6px;padding:4px 4px 4px 10px;background:#33ff66;color:#001a08;font-weight:700;font-size:14px}
   #void .vwin-title{flex:1}
   #void .vwin-btn{width:26px;height:22px;display:grid;place-items:center;background:#000;color:#33ff66;border:1px solid #001a08;font:inherit;font-size:13px;cursor:pointer;line-height:1}
@@ -688,10 +690,32 @@ sudo bash scripts/kos-setup.sh</code></pre>
         logsStage();
       },5000);
     }
+    // drag an element by a handle; returns a function that says if the last press was a drag
+    function draggable(el,handle,canDrag){
+      var sx,sy,ox,oy,dragging=false,moved=false;
+      handle.addEventListener('pointerdown',function(e){
+        if(e.button!==0||(canDrag&&!canDrag())||(e.target.closest&&e.target.closest('button')))return;
+        var r=el.getBoundingClientRect();
+        el.style.position='absolute';el.style.left=r.left+'px';el.style.top=r.top+'px';el.style.transform='none';el.style.margin='0';
+        sx=e.clientX;sy=e.clientY;ox=r.left;oy=r.top;dragging=true;moved=false;
+        handle.setPointerCapture(e.pointerId);e.preventDefault();
+      });
+      handle.addEventListener('pointermove',function(e){
+        if(!dragging)return;
+        var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)+Math.abs(dy)>4)moved=true;
+        var w=el.offsetWidth,h=el.offsetHeight;
+        el.style.left=Math.max(0,Math.min(innerWidth-w,ox+dx))+'px';
+        el.style.top=Math.max(0,Math.min(innerHeight-h,oy+dy))+'px';
+      });
+      function up(){dragging=false}
+      handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
+      return function(){return moved};
+    }
     function logsStage(){
       var file=v.querySelector('.vfile'),win=null;
+      var fileDragged=draggable(file,file);
       function openLog(){
-        if(win)return;
+        if(win||fileDragged())return;
         click();
         v.insertAdjacentHTML('beforeend',
           '<div class="vwin" role="dialog" aria-label="LOGS.txt">'+
@@ -701,10 +725,17 @@ sudo bash scripts/kos-setup.sh</code></pre>
             '<div class="vwin-body"><span class="vglitch">1956292</span></div>'+
           '</div>');
         win=v.querySelector('.vwin');
+        var w0=win;
+        draggable(w0,w0.querySelector('.vwin-bar'),function(){return !w0.classList.contains('full')});
         win.addEventListener('click',function(e){
           var a=e.target.getAttribute&&e.target.getAttribute('data-a');
           if(a==='close'){click();win.remove();win=null;file.focus()}
-          else if(a==='full'){click();win.classList.toggle('full')}
+          else if(a==='full'){
+            click();
+            if(!win.classList.contains('full')){win.dataset.l=win.style.left;win.dataset.t=win.style.top;win.dataset.tr=win.style.transform;win.style.left='';win.style.top='';win.style.transform=''}
+            else{win.style.left=win.dataset.l||'';win.style.top=win.dataset.t||'';win.style.transform=win.dataset.tr||''}
+            win.classList.toggle('full');
+          }
         });
       }
       file.addEventListener('click',openLog);
