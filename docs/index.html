@@ -634,7 +634,17 @@ sudo bash scripts/kos-setup.sh</code></pre>
     var stage=0;
     function reply(line){
       var w=line.trim();
-      if(stage===0&&/^yes\b/i.test(w)){
+      if(stage===0&&/^no\b/i.test(w)){
+        stage=9;ready=false;
+        setTimeout(function(){
+          typeOut('alright see you later i guess.. you made me lose my job..',function(){
+            setTimeout(function(){
+              v.classList.add('tvoff');
+              setTimeout(function(){document.removeEventListener('keydown',onKey,true);v.remove();document.body.style.overflow='';on=false},1100);
+            },1500);
+          },35);
+        },700);
+      }else if(stage===0&&/^yes\b/i.test(w)){
         stage=1;ready=false;
         setTimeout(function(){
           typeOut('WHO?',function(){setTimeout(function(){txt.textContent+='\n';click();ready=true},900)},650);
