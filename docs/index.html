@@ -12,18 +12,18 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap">
 <style>
   :root{
-    --bg:#080A0F; --surface:#0E131B; --surface2:#131A25; --border:#1E2836;
-    --fg:#E7EEF6; --muted:#8694A6; --faint:#5C6878;
+    --bg:#040507; --surface:#090C11; --surface2:#0D1118; --border:#161C26;
+    --fg:#CDD6E1; --muted:#76839A; --faint:#4E5968;
     --lb:#86C8FF; --blue:#2C62CF; --navy:#16306e;
     --display:'Sora',system-ui,sans-serif;
-    --mark-a:#86C8FF; --headbg:rgba(8,10,15,.82); --glow:rgba(44,98,207,.22);
+    --mark-a:#7FBDF2; --headbg:rgba(4,5,7,.85); --glow:rgba(44,98,207,.16);
     color-scheme:dark;
   }
   :root[data-theme="light"]{
-    --bg:#F3F6FA; --surface:#FFFFFF; --surface2:#EAF0F7; --border:#D6DFEA;
-    --fg:#0B1220; --muted:#4D5B6E; --faint:#7B8798;
-    --lb:#1F56C4; --blue:#2C62CF; --navy:#16306e;
-    --mark-a:#4BA3F2; --headbg:rgba(243,246,250,.85); --glow:rgba(44,98,207,.14);
+    --bg:#A9B1BC; --surface:#B3BAC4; --surface2:#9FA8B4; --border:#959EAB;
+    --fg:#10151C; --muted:#2E3846; --faint:#46505E;
+    --lb:#173F91; --blue:#1F4FB0; --navy:#132a5e;
+    --mark-a:#2462B8; --headbg:rgba(169,177,188,.88); --glow:rgba(31,79,176,.16);
     color-scheme:light;
   }
   body,header,.card,.step,.shot,.req,.note,.faq details{transition:background-color .25s,border-color .25s,color .25s}
@@ -128,6 +128,8 @@
   .term .bar span{margin-left:8px;color:#8694A6;font-size:12.5px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
   .term .out{height:360px;overflow-y:auto;padding:14px 16px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;line-height:1.55;color:#E7EEF6;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
   .term .ln{display:flex;gap:0;white-space:pre}
+  :root[data-theme="light"] .shot img,:root[data-theme="light"] .figure img{filter:brightness(.8) contrast(.95)}
+  .term .burn{display:block;width:100%;max-width:560px;border-radius:8px;margin:4px 0 6px}
   .term .april{width:100%;height:100%;object-fit:contain;background:#00a2e8;display:block}
   .term input{flex:1;min-width:0;background:none;border:0;outline:0;color:#E7EEF6;font:inherit;caret-color:#86C8FF}
   .t-p{color:#5fd7ff} .t-b{color:#86C8FF} .t-d{color:#8694A6} .t-g{color:#3ddc84} .t-y{color:#f5c76b} .t-k{color:#2C62CF;font-weight:700}
@@ -424,6 +426,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     uptime:function(){var s=Math.floor((Date.now()-started)/1000);return 'up '+Math.floor(s/60)+' min, '+(s%60)+' sec'},
     echo:function(a){return esc(a.join(' '))},
     theme:function(a){var t=a[0];
+      if(t==='burn')return '<img class="burn" src="img/burn.png" alt="two eyes shooting golden beams"><span class="t-y">this is what light mode does to you.</span>';
       if(t==='april'){
         locked=true;
         out.innerHTML='<img class="april" src="img/april.png" alt="">';
