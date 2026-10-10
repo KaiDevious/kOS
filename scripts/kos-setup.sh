@@ -62,6 +62,9 @@ esac
 EOF2
 # also show in Konsole (non-login) via bash.bashrc
 grep -q kos-motd /etc/bash.bashrc 2>/dev/null || echo '[ -r /etc/profile.d/kos-motd.sh ] && . /etc/profile.d/kos-motd.sh' >> /etc/bash.bashrc
+# and in zsh (kOS's default shell), which doesn't read the bash files
+mkdir -p /etc/zsh
+grep -q kos-motd /etc/zsh/zshrc 2>/dev/null || echo '[ -r /etc/profile.d/kos-motd.sh ] && . /etc/profile.d/kos-motd.sh' >> /etc/zsh/zshrc
 # notifier daemon
 cat > /usr/local/bin/kos-notify.sh <<EOF3
 #!/bin/bash

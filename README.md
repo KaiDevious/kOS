@@ -33,10 +33,10 @@ Pick whichever fits you.
 ### Option 2 — Add kOS to a Kali you already have
 
 1. Install Kali and choose the **KDE Plasma** desktop.
-2. Download `kos-desktop_1.0.0.deb` from [Releases](https://github.com/KaiDevious/kOS/releases) (or the `packaging/` folder).
+2. Download `kos-desktop_1.0.1.deb` from [Releases](https://github.com/KaiDevious/kOS/releases) (or the `packaging/` folder).
 3. Open a terminal where the file is and run:
    ```bash
-   sudo apt install ./kos-desktop_1.0.0.deb
+   sudo apt install ./kos-desktop_1.0.1.deb
    sudo kos-setup
    ```
 4. Reboot.
