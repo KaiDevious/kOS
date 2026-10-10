@@ -56,11 +56,30 @@
   :root[data-theme="glass"] .motd,:root[data-theme="glass"] .chip,:root[data-theme="glass"] .shot,
   :root[data-theme="glass"] .figure,:root[data-theme="glass"] .cmp,:root[data-theme="glass"] .ntf,
   :root[data-theme="glass"] .tbtn,:root[data-theme="glass"] .copy,:root[data-theme="glass"] .btn-ghost,
-  :root[data-theme="glass"] .vwin{
-    -webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7)}
+  :root[data-theme="glass"] .btn-primary,:root[data-theme="glass"] .vwin{
+    -webkit-backdrop-filter:blur(7px) saturate(1.8) brightness(1.06);backdrop-filter:blur(7px) saturate(1.8) brightness(1.06) url(#lg-refract)}
+  /* glossy rim + bright top edge = light catching real glass */
   :root[data-theme="glass"] .card,:root[data-theme="glass"] .step,:root[data-theme="glass"] .shot,
-  :root[data-theme="glass"] .note,:root[data-theme="glass"] .faq details{
-    box-shadow:0 8px 32px rgba(10,15,40,.3),inset 0 1px 0 rgba(255,255,255,.22)}
+  :root[data-theme="glass"] .note,:root[data-theme="glass"] .faq details,:root[data-theme="glass"] .req,
+  :root[data-theme="glass"] .btn,:root[data-theme="glass"] .motd,:root[data-theme="glass"] .ntf,
+  :root[data-theme="glass"] .chip,:root[data-theme="glass"] .tbtn,:root[data-theme="glass"] .vwin{
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -12px 24px -14px rgba(255,255,255,.25),0 10px 34px rgba(0,0,0,.34);
+    position:relative;overflow:hidden}
+  /* rounder, more liquid corners */
+  :root[data-theme="glass"] .card,:root[data-theme="glass"] .step,:root[data-theme="glass"] .note,
+  :root[data-theme="glass"] .faq details,:root[data-theme="glass"] .shot,:root[data-theme="glass"] .ntf,
+  :root[data-theme="glass"] .vwin{border-radius:22px}
+  :root[data-theme="glass"] .btn{border-radius:16px}
+  /* a specular sweep that drifts across each panel */
+  :root[data-theme="glass"] .card::before,:root[data-theme="glass"] .step::before,
+  :root[data-theme="glass"] .btn::before,:root[data-theme="glass"] .motd::before,
+  :root[data-theme="glass"] .faq details::before,:root[data-theme="glass"] .ntf::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.1) 46%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.1) 54%,transparent 70%);
+    background-size:280% 280%;animation:lgSheen 7s ease-in-out infinite}
+  :root[data-theme="glass"] .btn>*,:root[data-theme="glass"] .faq summary,:root[data-theme="glass"] .card>*{position:relative;z-index:1}
+  @keyframes lgSheen{0%{background-position:120% 0%}55%,100%{background-position:-40% 0%}}
+  @media(prefers-reduced-motion:reduce){:root[data-theme="glass"] [class]::before{animation:none}}
   :root[data-theme="glass"] .hero p.tag,:root[data-theme="glass"] .hero p.sub,
   :root[data-theme="glass"] h2,:root[data-theme="glass"] .lead{text-shadow:0 1px 20px rgba(10,15,40,.4)}
   :root[data-theme="glass"] .btn-primary{background:linear-gradient(165deg,#6b7280,#3a3f47);box-shadow:0 8px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.3)}
@@ -388,6 +407,13 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-refract" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.009 0.013" numOctaves="2" seed="11" result="noise"/>
+    <feGaussianBlur in="noise" stdDeviation="1.4" result="sn"/>
+    <feDisplacementMap in="SourceGraphic" in2="sn" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
 
 <header>
   <div class="prog" id="prog" aria-hidden="true"></div>
