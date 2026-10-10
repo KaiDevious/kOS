@@ -1313,8 +1313,8 @@ sudo bash scripts/kos-setup.sh</code></pre>
     var nd=noiseBuf.getChannelData(0);for(var i=0;i<len;i++)nd[i]=Math.random()*2-1;
     // faint continuous bed = distant rain, kept very low
     var bed=ac.createBufferSource();bed.buffer=noiseBuf;bed.loop=true;
-    var lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1100;lp.Q.value=.2;
-    var hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=400;
+    var lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=700;lp.Q.value=.2;
+    var hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=220;
     rainGain=ac.createGain();rainGain.gain.value=0;
     bed.connect(hp);hp.connect(lp);lp.connect(rainGain);rainGain.connect(ac.destination);bed.start();
     // one raindrop = a very short burst of band-passed noise (a 'tick' of water)
@@ -1322,12 +1322,13 @@ sudo bash scripts/kos-setup.sh</code></pre>
       var t=ac.currentTime+(delay||0);
       var src=ac.createBufferSource();src.buffer=noiseBuf;src.loop=true;
       var off=Math.random()*(secs-0.2);src.loopStart=off;src.loopEnd=off+0.18;
-      var bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=900+Math.random()*2600;bp.Q.value=1.1;
+      var bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=260+Math.random()*700;bp.Q.value=2.2;
+      var lp2=ac.createBiquadFilter();lp2.type='lowpass';lp2.frequency.value=1600;
       var g=ac.createGain();
-      var dur=0.03+Math.random()*0.05;
+      var dur=0.05+Math.random()*0.09;
       g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.002);
       g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
-      src.connect(bp);bp.connect(g);g.connect(ac.destination);src.start(t,off);src.stop(t+dur+0.02);
+      src.connect(bp);bp.connect(lp2);lp2.connect(g);g.connect(ac.destination);src.start(t,off);src.stop(t+dur+0.02);
     }
     (function patter(){
       if(!ac)return;
