@@ -1318,14 +1318,21 @@ sudo bash scripts/kos-setup.sh</code></pre>
       if(!ac)return;
       if(rainOn&&mode==='full'&&!document.hidden&&ac.state==='running'){
         var t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(),lpf=ac.createBiquadFilter();
-        o.type='sine';o.frequency.setValueAtTime(320+Math.random()*340,t);
-        o.frequency.exponentialRampToValueAtTime(190,t+.12);
-        lpf.type='lowpass';lpf.frequency.value=900;
-        g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.006+Math.random()*.008,t+.02);
-        g.gain.exponentialRampToValueAtTime(.0001,t+.22);
-        o.connect(lpf);lpf.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.24);
+        var f0=520+Math.random()*680;                 // each drop a slightly different pitch
+        o.type='sine';o.frequency.setValueAtTime(f0,t);
+        o.frequency.exponentialRampToValueAtTime(f0*0.45,t+.06);   // the quick downward 'plip'
+        lpf.type='lowpass';lpf.frequency.value=1500;
+        var vol=.03+Math.random()*.035;
+        g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.004);
+        g.gain.exponentialRampToValueAtTime(.0001,t+.18);
+        o.connect(lpf);lpf.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.2);
+        // a second even softer drop sometimes, for a natural uneven patter
+        if(Math.random()<.5){var t2=t+.05+Math.random()*.12,o2=ac.createOscillator(),g2=ac.createGain(),f2=520+Math.random()*680;
+          o2.type='sine';o2.frequency.setValueAtTime(f2,t2);o2.frequency.exponentialRampToValueAtTime(f2*0.45,t2+.06);
+          g2.gain.setValueAtTime(0,t2);g2.gain.linearRampToValueAtTime(vol*.6,t2+.004);g2.gain.exponentialRampToValueAtTime(.0001,t2+.16);
+          o2.connect(g2);g2.connect(ac.destination);o2.start(t2);o2.stop(t2+.18);}
       }
-      setTimeout(plink,260+Math.random()*520);
+      setTimeout(plink,180+Math.random()*360);
     })();
   }
   var breathe=0;
@@ -1335,10 +1342,10 @@ sudo bash scripts/kos-setup.sh</code></pre>
     if(!ac)return;
     if(want&&ac.state==='suspended')ac.resume();
     buildRain();
-    if(rainGain)rainGain.gain.setTargetAtTime(want?.14:0,ac.currentTime,.6);
+    if(rainGain)rainGain.gain.setTargetAtTime(want?.025:0,ac.currentTime,.6);
     if(want&&!breathe){breathe=setInterval(function(){
       if(!rainGain||!ac||!(rainOn&&mode==='full'&&!document.hidden))return;
-      var v=.11+Math.random()*.05;rainGain.gain.setTargetAtTime(v,ac.currentTime,2.2);
+      var v=.02+Math.random()*.015;rainGain.gain.setTargetAtTime(v,ac.currentTime,2.2);
     },3000)}
   }
   document.addEventListener('visibilitychange',soundSync);
