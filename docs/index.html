@@ -549,6 +549,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     if(k===CODE[ci]){ci++;if(k.indexOf('arrow')===0)e.preventDefault()}
     else{ci=(k===CODE[0])?1:0}
     if(ci===CODE.length){
+      e.preventDefault();
       ci=0;formatted=false;locked=false;
       Array.prototype.slice.call(out.children).forEach(function(c){if(c!==input.parentNode)out.removeChild(c)});
       document.getElementById('gone').hidden=true;
@@ -556,7 +557,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
       document.getElementById('chips').hidden=false;
       print('<span class="t-g">kOS restored. nice moves.</span>');
       print(fastfetch());
-      input.focus({preventScroll:true});
+      setTimeout(function(){input.focus({preventScroll:true})},0);
     }
   });
   function isMagic(v){return /^access denied\.?$/i.test(v.trim())}
@@ -775,6 +776,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
       });
     },1000);
     function onKey(e){
+      if(!v.isConnected){document.removeEventListener('keydown',onKey,true);return}
       if(e.ctrlKey||e.metaKey||e.altKey)return;
       if(!ready){if(e.key.length===1||e.key==='Enter'||e.key==='Backspace')e.preventDefault();return}
       if(e.key==='Enter'){var line=txt.textContent.slice(txt.textContent.lastIndexOf('\n')+1);txt.textContent+='\n';click();reply(line)}
