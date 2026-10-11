@@ -36,7 +36,7 @@ mkdir -p /usr/share/kos /etc/xdg/fastfetch
 cp "$ASSETS/kos-ascii.txt" /usr/share/kos/kos.txt
 cat > /etc/xdg/fastfetch/config.jsonc <<'JSON'
 {
-  "logo": { "source": "/usr/share/kos/kos.txt", "type": "file", "color": { "1": "blue" } },
+  "logo": { "source": "/usr/share/kos/kos.txt", "type": "file", "color": { "1": "38;2;134;200;255", "2": "38;2;74;134;240", "3": "38;2;44;98;207" } },
   "modules": [
     {"type":"command","key":"OS","text":". /etc/os-release && echo $PRETTY_NAME $(uname -m)"},
     "kernel","uptime","packages","shell","de","wm","terminal","cpu","gpu","memory","disk","break","colors"
