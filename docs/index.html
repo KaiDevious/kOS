@@ -453,6 +453,9 @@
   .chip:active{transform:scale(.96)}
 
   /* dark / light compare */
+  .cmp-grid{display:grid;gap:16px}
+  @media(min-width:760px){.cmp-grid{grid-template-columns:1fr 1fr}}
+  .cmp-grid>*{min-width:0}
   .cmp{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--border);aspect-ratio:16/9;background:#000;user-select:none;touch-action:pan-y}
   .cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .cmp-top{position:absolute;inset:0;clip-path:inset(0 0 0 var(--pos))}
@@ -619,13 +622,22 @@
 
 <section class="wrap">
   <h2>The look</h2>
-  <p class="lead">Dark and light, same identity. Drag across to compare.</p>
-  <div class="cmp" id="cmp" style="--pos:50%">
-    <img src="img/wallpaper-dark.webp" alt="kOS dark wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async">
-    <div class="cmp-top"><img src="img/wallpaper-light.webp" alt="kOS light wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async"></div>
-    <input type="range" min="0" max="100" value="50" step="0.5" aria-label="Slide between the dark and light wallpaper">
-    <span class="cmp-line" aria-hidden="true"><span class="cmp-knob"></span></span>
-    <span class="cmp-tag l" aria-hidden="true">Dark</span><span class="cmp-tag r" aria-hidden="true">Light</span>
+  <p class="lead">Five themes, one identity. Drag across to compare.</p>
+  <div class="cmp-grid">
+    <div class="cmp" style="--pos:50%">
+      <img src="img/wallpaper-dark.webp" alt="kOS dark wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async">
+      <div class="cmp-top"><img src="img/wallpaper-light.webp" alt="kOS light wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async"></div>
+      <input type="range" min="0" max="100" value="50" step="0.5" aria-label="Slide between the dark and light wallpaper">
+      <span class="cmp-line" aria-hidden="true"><span class="cmp-knob"></span></span>
+      <span class="cmp-tag l" aria-hidden="true">Dark</span><span class="cmp-tag r" aria-hidden="true">Light</span>
+    </div>
+    <div class="cmp" style="--pos:50%">
+      <img src="img/wallpaper-warm.webp" alt="kOS Lamplight wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async">
+      <div class="cmp-top"><img src="img/wallpaper-glass.webp" alt="kOS Liquid Glass wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async"></div>
+      <input type="range" min="0" max="100" value="50" step="0.5" aria-label="Slide between the Lamplight and Liquid Glass wallpaper">
+      <span class="cmp-line" aria-hidden="true"><span class="cmp-knob"></span></span>
+      <span class="cmp-tag l" aria-hidden="true">Lamplight</span><span class="cmp-tag r" aria-hidden="true">Liquid Glass</span>
+    </div>
   </div>
 </section>
 
@@ -1500,9 +1512,8 @@ sudo bash scripts/kos-setup.sh</code></pre>
     function up(){dragging=false}bar.addEventListener('pointerup',up);bar.addEventListener('pointercancel',up);
   })();
 
-  /* dark / light compare slider */
-  var cmp=document.getElementById('cmp');
-  if(cmp){
+  /* theme compare sliders (dark/light, Lamplight/Liquid Glass) */
+  document.querySelectorAll('.cmp').forEach(function(cmp){
     var rng=cmp.querySelector('input'),drag=false;
     function setPos(v){v=Math.max(0,Math.min(100,v));cmp.style.setProperty('--pos',v+'%');rng.value=v}
     function fromX(x){var r=cmp.getBoundingClientRect();setPos((x-r.left)/r.width*100)}
@@ -1510,7 +1521,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     cmp.addEventListener('pointerdown',function(e){if(e.button!==0)return;e.preventDefault();drag=true;cmp.setPointerCapture(e.pointerId);fromX(e.clientX);rng.focus({preventScroll:true})});
     cmp.addEventListener('pointermove',function(e){if(drag)fromX(e.clientX)});
     function up(){drag=false}cmp.addEventListener('pointerup',up);cmp.addEventListener('pointercancel',up);
-  }
+  });
 
   /* copy buttons on install commands */
   document.querySelectorAll('.install pre').forEach(function(pre){
