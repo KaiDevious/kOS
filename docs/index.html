@@ -70,6 +70,19 @@
   :root[data-theme="limbus"] .btn-ghost{background:transparent;border-color:var(--blue);color:var(--lb)}
   :root[data-theme="limbus"] .btn-ghost:hover{background:color-mix(in srgb,var(--blue) 16%,transparent);border-color:var(--lb)}
   :root[data-theme="limbus"] .ntf .ic{background:linear-gradient(165deg,#EACB78,#8A6614);color:#1b1407;box-shadow:0 0 14px rgba(201,162,39,.4)}
+  :root[data-theme="burn"]{
+    /* old light mode — pure white, Times, blinding. a joke theme; never persisted. */
+    --bg:#ffffff; --surface:#ffffff; --surface2:#f3f3f3; --border:#cfcfcf;
+    --fg:#000000; --muted:#111111; --faint:#333333;
+    --lb:#0000ee; --blue:#1a4cff; --navy:#0000aa;
+    --mark-a:#2b7bff; --headbg:#ffffff; --glow:rgba(120,170,255,.25);
+    --display:'Times New Roman',Times,serif; --mark:'Times New Roman',Times,serif;
+    color-scheme:light;
+  }
+  :root[data-theme="burn"] body{background:#fff;font-family:'Times New Roman',Times,serif;filter:contrast(1.08) brightness(1.07) saturate(1.12)}
+  :root[data-theme="burn"] a{color:#0000ee;text-decoration:underline}
+  :root[data-theme="burn"] a:visited{color:#551a8b}
+  :root[data-theme="burn"] .btn-primary{background:linear-gradient(#2b7bff,#0000cc);color:#fff}
   :root[data-theme="glass"] body{
     background:
       radial-gradient(60% 55% at 18% 12%, rgba(255,255,255,.14), transparent 60%),
@@ -929,7 +942,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     uptime:function(){var s=Math.floor((Date.now()-started)/1000);return 'up '+Math.floor(s/60)+' min, '+(s%60)+' sec'},
     echo:function(a){return esc(a.join(' '))},
     theme:function(a){var t=a[0];
-      if(t==='burn')return '<img class="burn" src="img/burn.webp" alt="two eyes shooting golden beams"><span class="t-y">this is what light mode does to you.</span>';
+      if(t==='burn'){document.documentElement.setAttribute('data-theme','burn');return '<span class="t-y">BEHOLD — old light mode.</span>\n<span class="t-d">pure white. serif. no mercy. this is what light mode does to you.\n(type </span>theme dark<span class="t-d"> to stop the burning. it does not persist.)</span>'}
       if(t==='april'){
         locked=true;
         out.innerHTML='<img class="april" src="img/april.png" alt="">';
