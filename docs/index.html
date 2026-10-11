@@ -342,6 +342,14 @@
   @keyframes vroll{0%{transform:translateY(-100vh) skewX(4deg)}100%{transform:translateY(100vh) skewX(-4deg)}}
   @keyframes vshake{0%{transform:translate(0,0);filter:hue-rotate(0)}50%{transform:translate(-6px,3px);filter:hue-rotate(60deg) contrast(1.6)}100%{transform:translate(4px,-2px)}}
   #void.bare{background:#000;display:grid;place-items:center}
+  #void .vfiles{display:flex;gap:46px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  #void .wf{display:flex;flex-direction:column;gap:22px;align-items:center}
+  #void .wf-in{background:#000;border:2px solid #33ff66;color:#33ff66;font-family:var(--mono);font-size:22px;letter-spacing:.08em;
+    padding:9px 14px;text-align:center;outline:none;width:min(320px,70vw);caret-color:#33ff66;
+    text-shadow:1px 0 rgba(255,0,60,.5),-1px 0 rgba(0,160,255,.5)}
+  #void .wf-in:focus{box-shadow:0 0 18px rgba(51,255,102,.45)}
+  #void .wf-in.bad{animation:wfbad .4s steps(2) 2}
+  @keyframes wfbad{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
   #void .vfile{display:flex;flex-direction:row;align-items:center;gap:14px;padding:10px 16px 10px 12px;border:1px solid transparent;cursor:default;font-family:var(--mono);font-size:18px;outline:none}
   #void .vfile svg{width:36px;height:45px;image-rendering:pixelated}
   #void .vfile span{color:#33ff66;font-weight:700;letter-spacing:.06em;text-shadow:2px 0 rgba(255,0,60,.7),-2px 0 rgba(0,160,255,.7),0 0 8px rgba(51,255,102,.7);animation:jit 1.1s infinite steps(1)}
@@ -1200,9 +1208,9 @@ sudo bash scripts/kos-setup.sh</code></pre>
         v.classList.remove('rolling');v.classList.add('bare');
         scr.style.display='none';
         v.insertAdjacentHTML('beforeend',
-          '<div class="vfile" tabindex="0" role="button" aria-label="LOGS.txt">'+
+          '<div class="vfiles"><div class="vfile" data-f="logs" tabindex="0" role="button" aria-label="LOGS.txt">'+
           '<svg viewBox="0 0 12 15" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="0" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="0" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="0" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="0" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="0" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="0" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="0" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="0" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="0" width="1" height="1" fill="#8c8c8c"/><rect x="0" y="1" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="1" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="1" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="1" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="1" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="1" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="1" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="1" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="1" width="1" height="1" fill="#8c8c8c"/><rect x="9" y="1" width="1" height="1" fill="#8c8c8c"/><rect x="0" y="2" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="2" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="2" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="2" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="2" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="2" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="2" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="2" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="2" width="1" height="1" fill="#8c8c8c"/><rect x="9" y="2" width="1" height="1" fill="#8c8c8c"/><rect x="10" y="2" width="1" height="1" fill="#8c8c8c"/><rect x="0" y="3" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="3" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="3" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="3" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="3" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="3" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="3" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="3" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="3" width="1" height="1" fill="#8c8c8c"/><rect x="9" y="3" width="1" height="1" fill="#8c8c8c"/><rect x="10" y="3" width="1" height="1" fill="#8c8c8c"/><rect x="11" y="3" width="1" height="1" fill="#8c8c8c"/><rect x="0" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="9" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="10" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="4" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="5" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="5" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="5" width="1" height="1" fill="#6a6a6a"/><rect x="3" y="5" width="1" height="1" fill="#6a6a6a"/><rect x="4" y="5" width="1" height="1" fill="#6a6a6a"/><rect x="5" y="5" width="1" height="1" fill="#6a6a6a"/><rect x="6" y="5" width="1" height="1" fill="#6a6a6a"/><rect x="7" y="5" width="1" height="1" fill="#6a6a6a"/><rect x="8" y="5" width="1" height="1" fill="#6a6a6a"/><rect x="9" y="5" width="1" height="1" fill="#6a6a6a"/><rect x="10" y="5" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="5" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="9" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="10" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="6" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="7" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="7" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="7" width="1" height="1" fill="#6a6a6a"/><rect x="3" y="7" width="1" height="1" fill="#6a6a6a"/><rect x="4" y="7" width="1" height="1" fill="#6a6a6a"/><rect x="5" y="7" width="1" height="1" fill="#6a6a6a"/><rect x="6" y="7" width="1" height="1" fill="#6a6a6a"/><rect x="7" y="7" width="1" height="1" fill="#6a6a6a"/><rect x="8" y="7" width="1" height="1" fill="#6a6a6a"/><rect x="9" y="7" width="1" height="1" fill="#6a6a6a"/><rect x="10" y="7" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="7" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="9" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="10" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="8" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="9" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="9" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="9" width="1" height="1" fill="#6a6a6a"/><rect x="3" y="9" width="1" height="1" fill="#6a6a6a"/><rect x="4" y="9" width="1" height="1" fill="#6a6a6a"/><rect x="5" y="9" width="1" height="1" fill="#6a6a6a"/><rect x="6" y="9" width="1" height="1" fill="#6a6a6a"/><rect x="7" y="9" width="1" height="1" fill="#6a6a6a"/><rect x="8" y="9" width="1" height="1" fill="#6a6a6a"/><rect x="9" y="9" width="1" height="1" fill="#6a6a6a"/><rect x="10" y="9" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="9" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="9" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="10" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="10" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="11" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="11" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="11" width="1" height="1" fill="#6a6a6a"/><rect x="3" y="11" width="1" height="1" fill="#6a6a6a"/><rect x="4" y="11" width="1" height="1" fill="#6a6a6a"/><rect x="5" y="11" width="1" height="1" fill="#6a6a6a"/><rect x="6" y="11" width="1" height="1" fill="#6a6a6a"/><rect x="7" y="11" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="11" width="1" height="1" fill="#d0d0d0"/><rect x="9" y="11" width="1" height="1" fill="#d0d0d0"/><rect x="10" y="11" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="11" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="9" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="10" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="12" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="9" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="10" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="13" width="1" height="1" fill="#d0d0d0"/><rect x="0" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="1" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="2" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="3" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="4" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="5" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="6" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="7" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="8" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="9" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="10" y="14" width="1" height="1" fill="#d0d0d0"/><rect x="11" y="14" width="1" height="1" fill="#d0d0d0"/></svg>'+
-          '<span>LOGS.txt</span></div>');
+          '<span>LOGS.txt</span></div></div>');
         logsStage();
       },5000);
     }
@@ -1228,34 +1236,66 @@ sudo bash scripts/kos-setup.sh</code></pre>
       return function(){return moved};
     }
     function logsStage(){
-      var file=v.querySelector('.vfile'),win=null;
-      var fileDragged=draggable(file,file);
-      function openLog(){
-        if(win||fileDragged())return;
+      var wrap=v.querySelector('.vfiles');
+      var logFile=wrap.querySelector('.vfile[data-f="logs"]');
+      // a second file materializes beside LOGS.txt
+      var walFile=logFile.cloneNode(true);
+      walFile.setAttribute('data-f','walten');
+      walFile.setAttribute('aria-label','WALTEN_FILES.txt');
+      walFile.querySelector('span').textContent='WALTEN_FILES.txt';
+      wrap.appendChild(walFile);
+      var win=null;
+      function mkFull(w0){
+        if(!w0.classList.contains('full')){w0.dataset.l=w0.style.left;w0.dataset.t=w0.style.top;w0.dataset.tr=w0.style.transform;w0.style.left='';w0.style.top='';w0.style.transform=''}
+        else{w0.style.left=w0.dataset.l||'';w0.style.top=w0.dataset.t||'';w0.style.transform=w0.dataset.tr||''}
+        w0.classList.toggle('full');
+      }
+      function openWin(title,bodyHTML,onReady){
+        if(win)return;
         click();
         v.insertAdjacentHTML('beforeend',
-          '<div class="vwin" role="dialog" aria-label="LOGS.txt">'+
-            '<div class="vwin-bar"><span class="vwin-title">LOGS.txt</span>'+
+          '<div class="vwin" role="dialog" aria-label="'+title+'">'+
+            '<div class="vwin-bar"><span class="vwin-title">'+title+'</span>'+
             '<button class="vwin-btn" data-a="full" aria-label="Fullscreen" title="Fullscreen">&#9633;</button>'+
             '<button class="vwin-btn" data-a="close" aria-label="Close" title="Close">&#10005;</button></div>'+
-            '<div class="vwin-body"><span class="vglitch">1956292</span></div>'+
+            '<div class="vwin-body">'+bodyHTML+'</div>'+
           '</div>');
-        win=v.querySelector('.vwin');
-        var w0=win;
+        win=v.querySelector('.vwin');var w0=win;
         draggable(w0,w0.querySelector('.vwin-bar'),function(){return !w0.classList.contains('full')});
         win.addEventListener('click',function(e){
           var a=e.target.getAttribute&&e.target.getAttribute('data-a');
-          if(a==='close'){click();win.remove();win=null;file.focus()}
-          else if(a==='full'){
-            click();
-            if(!win.classList.contains('full')){win.dataset.l=win.style.left;win.dataset.t=win.style.top;win.dataset.tr=win.style.transform;win.style.left='';win.style.top='';win.style.transform=''}
-            else{win.style.left=win.dataset.l||'';win.style.top=win.dataset.t||'';win.style.transform=win.dataset.tr||''}
-            win.classList.toggle('full');
-          }
+          if(a==='close'){click();win.remove();win=null}
+          else if(a==='full'){click();mkFull(w0)}
         });
+        if(onReady)onReady(w0);
       }
-      file.addEventListener('click',openLog);
-      file.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openLog()}});
+      function wire(file,open){
+        var dragged=draggable(file,file);
+        function go(){if(win||dragged())return;open()}
+        file.addEventListener('click',go);
+        file.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+      }
+      wire(logFile,function(){openWin('LOGS.txt','<span class="vglitch">1956292</span>')});
+      wire(walFile,function(){
+        openWin('WALTEN_FILES.txt',
+          '<div class="wf"><span class="vglitch">Whats the code?</span>'+
+          '<input class="wf-in" type="text" aria-label="code" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>',
+          function(w0){
+            var inp=w0.querySelector('.wf-in');if(!inp)return;
+            setTimeout(function(){inp.focus()},40);
+            inp.addEventListener('keydown',function(e){
+              e.stopPropagation();
+              if(e.key!=='Enter')return;
+              if(inp.value.trim().toLowerCase()==='supwaltuh'){
+                click();inp.disabled=true;v.classList.add('rolling');
+                w0.querySelector('.vwin-body').innerHTML='<span class="vglitch" style="font-size:clamp(30px,8vw,80px)">supwaltuh</span>';
+                setTimeout(function(){location.href='https://www.roblox.com/users/4016405404'},1150);
+              }else{
+                inp.value='';click();inp.classList.remove('bad');void inp.offsetWidth;inp.classList.add('bad');
+              }
+            });
+          });
+      });
       document.addEventListener('keydown',function esc(e){if(e.key==='Escape'&&win){click();win.remove();win=null}if(!v.isConnected)document.removeEventListener('keydown',esc)});
       // 15s with no cursor activity: the TV turns off
       var idle;
@@ -1282,6 +1322,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     },1000);
     function onKey(e){
       if(!v.isConnected){document.removeEventListener('keydown',onKey,true);return}
+      if(e.target&&e.target.classList&&e.target.classList.contains('wf-in'))return;
       if(e.ctrlKey||e.metaKey||e.altKey)return;
       if(!ready){if(e.key.length===1||e.key==='Enter'||e.key==='Backspace')e.preventDefault();return}
       if(e.key==='Enter'){var line=txt.textContent.slice(txt.textContent.lastIndexOf('\n')+1);txt.textContent+='\n';click();reply(line)}
