@@ -26,6 +26,11 @@ dpkg-deb -R "$DEB" "$T"               # unpack current package (images, DEBIAN/)
 install -D -m755 "$REPO/scripts/kos-setup.sh"      "$T/usr/local/bin/kos-setup"
 install -D -m644 "$REPO/branding/kos-ascii.txt"    "$T/usr/share/kos/kos-ascii.txt"
 
+# desktop themes: KDE color schemes + matching wallpapers (installed by kos-setup)
+for f in kOSLamplight.colors kOSLiquidGlass.colors wallpaper-warm.png wallpaper-glass.png; do
+  [ -f "$REPO/branding/$f" ] && install -D -m644 "$REPO/branding/$f" "$T/usr/share/kos/$f"
+done
+
 # config-driven notifier: fresh GitHub API (ETag-conditional) + raw fallback + poll handling
 cat > "$T/usr/local/bin/kos-notify" <<'EOF'
 #!/bin/bash

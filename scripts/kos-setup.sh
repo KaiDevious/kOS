@@ -5,6 +5,8 @@ set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # assets live in ../branding when run from the repo, or beside the script in the flat kit
 ASSETS="$HERE"; [ -d "$HERE/../branding" ] && ASSETS="$(cd "$HERE/../branding" && pwd)"
+# installed via the .deb, kos-setup lives in /usr/local/bin and assets ship in /usr/share/kos
+[ ! -f "$ASSETS/kos-ascii.txt" ] && [ -f /usr/share/kos/kos-ascii.txt ] && ASSETS=/usr/share/kos
 U="${SUDO_USER:-$USER}"
 UH="$(getent passwd "$U" | cut -d: -f6)"
 REPO="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
@@ -44,11 +46,41 @@ cat > /etc/xdg/fastfetch/config.jsonc <<'JSON'
 }
 JSON
 
-say "4/8  Wallpapers (dark + light)"
+say "4/8  Wallpapers + desktop themes (Dark, Light, Lamplight, Liquid Glass)"
 mkdir -p /usr/share/wallpapers/kOS/contents/images
 cp "$ASSETS/wallpaper-dark.png"  /usr/share/wallpapers/kOS/kos-dark.png
 cp "$ASSETS/wallpaper-light.png" /usr/share/wallpapers/kOS/kos-light.png
 cp "$ASSETS/wallpaper-dark.png"  /usr/share/wallpapers/kOS/contents/images/3840x2160.png
+[ -f "$ASSETS/wallpaper-warm.png" ]  && cp "$ASSETS/wallpaper-warm.png"  /usr/share/wallpapers/kOS/kos-lamplight.png
+[ -f "$ASSETS/wallpaper-glass.png" ] && cp "$ASSETS/wallpaper-glass.png" /usr/share/wallpapers/kOS/kos-liquidglass.png
+
+# KDE Plasma color schemes matched to the website themes
+mkdir -p /usr/share/color-schemes
+for CS in kOSLamplight kOSLiquidGlass; do
+  [ -f "$ASSETS/$CS.colors" ] && cp "$ASSETS/$CS.colors" /usr/share/color-schemes/
+done
+
+# kos-theme: apply a kOS desktop theme (color scheme + matching wallpaper) for the current user.
+#   kos-theme lamplight | liquidglass | dark | light
+cat > /usr/local/bin/kos-theme <<'EOF0'
+#!/bin/bash
+# Apply a kOS desktop look: color scheme + matching wallpaper, live.
+WP=/usr/share/wallpapers/kOS
+case "${1:-}" in
+  lamplight|warm)      SCHEME=kOSLamplight;   PAPER="$WP/kos-lamplight.png";  BREEZE=BreezeDark ;;
+  liquidglass|glass)   SCHEME=kOSLiquidGlass; PAPER="$WP/kos-liquidglass.png";BREEZE=BreezeDark ;;
+  dark)                SCHEME=BreezeDark;     PAPER="$WP/kos-dark.png";       BREEZE=BreezeDark ;;
+  light)               SCHEME=BreezeLight;    PAPER="$WP/kos-light.png";      BREEZE=BreezeLight ;;
+  *) echo "usage: kos-theme {lamplight|liquidglass|dark|light}"; exit 1 ;;
+esac
+[ -f "$PAPER" ] || PAPER="$WP/kos-dark.png"
+if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+  plasma-apply-colorscheme "$SCHEME" >/dev/null 2>&1 || plasma-apply-colorscheme "$BREEZE" >/dev/null 2>&1 || true
+fi
+command -v plasma-apply-wallpaperimage >/dev/null 2>&1 && plasma-apply-wallpaperimage "$PAPER" >/dev/null 2>&1 || true
+echo "kOS theme applied: ${1}"
+EOF0
+chmod 755 /usr/local/bin/kos-theme
 
 say "5/8  Login screen background (SDDM)"
 if [ -d /usr/share/sddm/themes/breeze ]; then
@@ -215,10 +247,12 @@ apt-get install -y kimageformat-plugins >/dev/null 2>&1 || apt-get install -y ki
 
 echo
 echo "============================================================"
-echo " kOS system setup done. Reboot, then finish the 3 GUI steps:"
-echo "   • Wallpaper:  right-click desktop > Set Wallpaper >"
-echo "       /usr/share/wallpapers/kOS/kos-dark.png (or kos-light.png)"
-echo "   • Theme:      System Settings > Colors & Themes > Global Theme"
-echo "       pick Breeze Dark or Breeze Light to match your wallpaper"
-echo "   • Accent:     System Settings > Colors > custom accent  #2C62CF"
+echo " kOS system setup done. Pick a desktop look with one command:"
+echo "   kos-theme lamplight     # warm, lamplit"
+echo "   kos-theme liquidglass   # cool frosted gray"
+echo "   kos-theme dark          # kOS dark (Breeze Dark)"
+echo "   kos-theme light         # kOS light (Breeze Light)"
+echo
+echo " (or set them by hand in System Settings > Colors & Themes —"
+echo "  the schemes are listed as 'kOS Lamplight' and 'kOS Liquid Glass')"
 echo "============================================================"
