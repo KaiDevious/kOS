@@ -947,20 +947,47 @@ sudo bash scripts/kos-setup.sh</code></pre>
 
   /* live broadcast notifications + Yes/No polls */
   // A notify.txt that ends with  /y|n\  becomes a 30-second Yes/No poll.
-  // Votes go to a Firebase Realtime DB over REST (POLL_DB). Empty => local demo
-  // (counts live only on this device). Set POLL_DB to go real across everyone.
-  var POLL_DB='';   // e.g. 'https://kos-xxxx-default-rtdb.firebaseio.com'
+  // Votes go to the kos-polls Firebase Realtime DB (REST). The exact URL depends on
+  // the DB's region, so we probe the known endpoints and cache whichever responds;
+  // if none are reachable (e.g. rules not published), it falls back to a local demo.
+  var POLL_INSTANCE='kos-polls-default-rtdb';
+  var POLL_DBS=[
+    'https://'+POLL_INSTANCE+'.firebaseio.com',
+    'https://'+POLL_INSTANCE+'.us-central1.firebasedatabase.app',
+    'https://'+POLL_INSTANCE+'.europe-west1.firebasedatabase.app',
+    'https://'+POLL_INSTANCE+'.asia-southeast1.firebasedatabase.app'
+  ];
   var POLL_RE=/\s*\/y\|n\\\s*$/;   // trailing  /y|n\
   function pollId(q){var h=5381;for(var i=0;i<q.length;i++)h=((h<<5)+h+q.charCodeAt(i))>>>0;return 'p'+h.toString(36)}
+  var _db,_dbP;
+  function resolveDB(){
+    if(_db!==undefined&&_db!==null)return Promise.resolve(_db);
+    try{var c=localStorage.getItem('kos-polldb');if(c){_db=c;return Promise.resolve(_db)}}catch(e){}
+    if(_dbP)return _dbP;
+    _dbP=new Promise(function(done){
+      var i=0;(function next(){
+        if(i>=POLL_DBS.length){_db=null;return done(null)}
+        var base=POLL_DBS[i++];
+        fetch(base+'/polls.json?shallow=true',{cache:'no-store'}).then(function(r){
+          if(r.ok){_db=base;try{localStorage.setItem('kos-polldb',base)}catch(e){}return done(base)}
+          next();
+        }).catch(next);
+      })();
+    });
+    return _dbP;
+  }
   function castVote(id,choice){
-    if(POLL_DB){return fetch(POLL_DB+'/polls/'+id+'/votes.json',{method:'POST',body:JSON.stringify({c:choice,t:Date.now()})}).catch(function(){})}
-    try{var k='kos-pollc-'+id,c=JSON.parse(localStorage.getItem(k)||'{"yes":0,"no":0}');c[choice]=(c[choice]||0)+1;localStorage.setItem(k,JSON.stringify(c))}catch(e){}
-    return Promise.resolve();
+    return resolveDB().then(function(base){
+      if(base)return fetch(base+'/polls/'+id+'/votes.json',{method:'POST',body:JSON.stringify({c:choice,t:Date.now()})}).catch(function(){});
+      try{var k='kos-pollc-'+id,c=JSON.parse(localStorage.getItem(k)||'{"yes":0,"no":0}');c[choice]=(c[choice]||0)+1;localStorage.setItem(k,JSON.stringify(c))}catch(e){}
+    });
   }
   function getTally(id){
-    if(POLL_DB){return fetch(POLL_DB+'/polls/'+id+'/votes.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(o){var y=0,n=0;if(o)for(var k in o){if(o[k]&&o[k].c==='yes')y++;else if(o[k]&&o[k].c==='no')n++}return{yes:y,no:n}}).catch(function(){return{yes:0,no:0}})}
-    var c={yes:0,no:0};try{c=JSON.parse(localStorage.getItem('kos-pollc-'+id)||'{"yes":0,"no":0}')}catch(e){}
-    return Promise.resolve(c);
+    return resolveDB().then(function(base){
+      if(base)return fetch(base+'/polls/'+id+'/votes.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(o){var y=0,n=0;if(o)for(var k in o){if(o[k]&&o[k].c==='yes')y++;else if(o[k]&&o[k].c==='no')n++}return{yes:y,no:n}}).catch(function(){return{yes:0,no:0}});
+      var c={yes:0,no:0};try{c=JSON.parse(localStorage.getItem('kos-pollc-'+id)||'{"yes":0,"no":0}')}catch(e){}
+      return c;
+    });
   }
   (function(){
     var wrap=document.createElement('div');wrap.className='ntf-wrap';wrap.setAttribute('aria-live','polite');document.body.appendChild(wrap);
