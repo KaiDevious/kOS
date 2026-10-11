@@ -750,8 +750,10 @@
     <div class="step">
       <div class="n">Option 2</div>
       <h3>Add kOS to Kali</h3>
-      <p>On a Kali install with KDE, run:</p>
-      <pre><code>sudo apt install ./kos-desktop_1.0.1.deb
+      <p>On Kali with KDE, add the kOS repo and install:</p>
+      <pre><code>echo 'deb [trusted=yes] https://kaidevious.github.io/kOS/apt ./' | sudo tee /etc/apt/sources.list.d/kos.list
+sudo apt update
+sudo apt install kos-desktop
 sudo kos-setup</code></pre>
     </div>
     <div class="step">
@@ -871,6 +873,12 @@ sudo bash scripts/kos-setup.sh</code></pre>
       <h2>What's new</h2>
       <p class="lead">Recent fixes.</p>
       <div class="log">
+        <div class="day">Oct 11</div>
+        <ul>
+          <li><b>kOS apt repo.</b> Install with <code>apt install kos-desktop</code> after adding the kOS repo — no more downloading a .deb by hand.</li>
+          <li><b>Live polls.</b> Broadcasts ending in <code>/y|n\</code> (or <code>/A|B|C\</code>) become 30-second Yes/No or multiple-choice polls with a live bar graph; results shared across everyone.</li>
+          <li><b>Faster notifications.</b> The broadcaster reads fresh instead of a 5-minute cache — updates land in seconds, on the site and the desktop.</li>
+        </ul>
         <div class="day">Oct 10</div>
         <ul>
           <li><b>Five themes.</b> Dark, Light, Lamplight, Liquid Glass, and Limbus (engraved gold on black), plus real rain sounds. The theme button cycles all of them.</li>

@@ -1,0 +1,18 @@
+Package: kos-desktop
+Version: 1.0.1
+Architecture: all
+Maintainer: KaiDevious
+Depends: curl, libnotify-bin
+Recommends: fastfetch, zsh, zsh-syntax-highlighting, zsh-autosuggestions, papirus-icon-theme, plymouth, wine
+Filename: ./kos-desktop_1.0.1.deb
+Size: 1269512
+MD5sum: 7f27657987c4f63e293ca450c95a7434
+SHA1: 665a72411f68182e777580454392ad813140f57f
+SHA256: ea1d6cc912bbe4a381a8a1f24d13d9026c3cb2112011daa1ffeaa1a195f9775c
+Section: x11
+Priority: optional
+Description: The kOS desktop suite — branding, broadcaster, and setup
+ Bundles the kOS look (wallpapers, logos, boot splash, login, icons), the
+ broadcast message-of-the-day + desktop notifier, and a `kos-setup` command
+ that applies the whole kOS theme to a Kali/KDE system.
+

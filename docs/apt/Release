@@ -1,0 +1,14 @@
+Origin: kOS
+Label: kOS
+Suite: stable
+Codename: kos
+Architectures: all
+Components: main
+Description: kOS desktop suite apt repository
+Date: Sun, 11 Oct 2026 20:53:35 GMT
+MD5Sum:
+ 8c114396975ab429d779d9527373ad14              735 Packages
+ 344d0d823e8687488a4d6fc9c3c81a5d              529 Packages.gz
+SHA256:
+ f1255724b576334f1bc2aa25b84b16a8ece6c3befad1189d091ebb5d34461b50              735 Packages
+ 006607f9b993faad40c0beac500c27ed48551e92d538834797b14bdd213852ba              529 Packages.gz
