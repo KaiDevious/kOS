@@ -785,7 +785,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   var user='you'; try{user=localStorage.getItem('kos-user')||'you'}catch(e){}
   function setBar(){document.getElementById('tbar').textContent=user+'@kos: ~'}
   setBar();
-  var ASCII=['██╗       ██████╗  ███████╗','██║  ██╗ ██╔═══██╗ ██╔════╝','██║ ██╔╝ ██║   ██║ ███████╗','█████╔╝  ██║   ██║ ╚════██║','██╔██╗   ╚██████╔╝ ███████║','╚═╝╚═╝    ╚═════╝  ╚══════╝'];
+  var ASCII=['██╗  ██╗  ██████╗  ███████╗','██║ ██╔╝ ██╔═══██╗ ██╔════╝','█████╔╝  ██║   ██║ ███████╗','██╔═██╗  ██║   ██║ ╚════██║','██║  ██╗ ╚██████╔╝ ███████║','╚═╝  ╚═╝  ╚═════╝  ╚══════╝'];
   function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
   function print(html){var d=document.createElement('div');d.innerHTML=html;out.insertBefore(d,input?input.parentNode:null);out.scrollTop=out.scrollHeight}
   function prompt(){return '<span class="t-p">'+esc(user)+'@kos</span>:<span class="t-b">~</span>$ '}
@@ -994,7 +994,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
 <script>
 /* psst. you found the source. there's a secret in the console too. */
 (function(){
-  var ascii="\u2588\u2588\u2557       \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\n\u2588\u2588\u2551  \u2588\u2588\u2557 \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557 \u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255d\n\u2588\u2588\u2551 \u2588\u2588\u2554\u255d \u2588\u2588\u2551   \u2588\u2588\u2551 \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\n\u2588\u2588\u2588\u2588\u2588\u2554\u255d  \u2588\u2588\u2551   \u2588\u2588\u2551 \u255a\u2550\u2550\u2550\u2550\u2588\u2588\u2551\n\u2588\u2588\u2554\u2588\u2588\u2557   \u255a\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255d \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551\n\u255a\u2550\u255d\u255a\u2550\u255d    \u255a\u2550\u2550\u2550\u2550\u2550\u255d  \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u255d";
+  var ascii="\u2588\u2588\u2557  \u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\n\u2588\u2588\u2551 \u2588\u2588\u2554\u255d \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557 \u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255d\n\u2588\u2588\u2588\u2588\u2588\u2554\u255d  \u2588\u2588\u2551   \u2588\u2588\u2551 \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\n\u2588\u2588\u2554\u2550\u2588\u2588\u2557  \u2588\u2588\u2551   \u2588\u2588\u2551 \u255a\u2550\u2550\u2550\u2550\u2588\u2588\u2551\n\u2588\u2588\u2551  \u2588\u2588\u2557 \u255a\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255d \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551\n\u255a\u2550\u255d  \u255a\u2550\u255d  \u255a\u2550\u2550\u2550\u2550\u2550\u255d  \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u255d";
   console.log('%c'+ascii,'color:#2C62CF;font-family:monospace;font-weight:bold');
   console.log('%cpsst. type %ckos%c and press Enter.','color:#8694A6;font-size:13px','color:#33ff66;font-family:monospace;font-size:13px;font-weight:bold','color:#8694A6;font-size:13px');
   var on=false;
