@@ -207,7 +207,7 @@
   .tbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--fg);display:grid;place-items:center;cursor:pointer}
   .tbtn:hover{border-color:var(--faint)}
   .tbtn svg{width:18px;height:18px}
-  .tbtn .sun,.tbtn .flame,.tbtn .drop,.tbtn .gem{display:none} :root[data-theme="light"] .tbtn .sun{display:block} :root[data-theme="light"] .tbtn .moon{display:none} :root[data-theme="warm"] .tbtn .flame{display:block} :root[data-theme="warm"] .tbtn .moon{display:none} :root[data-theme="glass"] .tbtn .drop{display:block} :root[data-theme="glass"] .tbtn .moon{display:none} :root[data-theme="limbus"] .tbtn .gem{display:block} :root[data-theme="limbus"] .tbtn .moon{display:none}
+  .tbtn .sun,.tbtn .flame,.tbtn .drop,.tbtn .gem{display:none} :root[data-theme="light"] .tbtn .sun{display:block} :root[data-theme="light"] .tbtn .moon{display:none} :root[data-theme="warm"] .tbtn .flame{display:block} :root[data-theme="warm"] .tbtn .moon{display:none} :root[data-theme="glass"] .tbtn .drop{display:block} :root[data-theme="glass"] .tbtn .moon{display:none} :root[data-theme="limbus"] .tbtn .gem{display:block} :root[data-theme="limbus"] .tbtn .moon{display:none} :root[data-theme="burn"] .tbtn .sun{display:block;color:#f5b301} :root[data-theme="burn"] .tbtn .sun circle{fill:#ffd21a} :root[data-theme="burn"] .tbtn .moon{display:none}
 
   /* motto + motd */
   .motto{margin-top:22px;font-family:var(--display);font-size:15px;color:var(--muted)}
@@ -852,7 +852,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
   var saved=null; try{saved=localStorage.getItem('kos-theme')}catch(e){}
   setTheme(saved||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'),false);
   document.getElementById('themeBtn').addEventListener('click',function(e){
-    var order=['dark','light','warm','glass','limbus'],cur=root.getAttribute('data-theme'),next=order[(order.indexOf(cur)+1)%order.length];if(order.indexOf(cur)<0)next='light';
+    var order=['dark','light','warm','glass','limbus'],cur=root.getAttribute('data-theme'),next=order[(order.indexOf(cur)+1)%order.length];if(order.indexOf(cur)<0)next='dark';
     if(!document.startViewTransition||matchMedia('(prefers-reduced-motion: reduce)').matches){setTheme(next,true);return}
     var r=this.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,
         rad=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
