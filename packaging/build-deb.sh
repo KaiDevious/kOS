@@ -11,7 +11,7 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.0.4"
+VERSION="1.0.5"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
@@ -36,6 +36,11 @@ install -D -m644 "$REPO/branding/kos-ascii.txt"    "$T/usr/share/kos/kos-ascii.t
 for f in kOSLamplight.colors kOSLiquidGlass.colors wallpaper-warm.png wallpaper-glass.png; do
   [ -f "$REPO/branding/$f" ] && install -D -m644 "$REPO/branding/$f" "$T/usr/share/kos/$f"
 done
+# GRUB theme folder (theme.txt + selection pixmaps), installed by kos-setup
+if [ -d "$REPO/branding/grub-theme" ]; then
+  mkdir -p "$T/usr/share/kos/grub-theme"
+  cp "$REPO/branding/grub-theme/"* "$T/usr/share/kos/grub-theme/"
+fi
 
 # config-driven notifier: fresh GitHub API (ETag-conditional) + raw fallback + poll handling
 cat > "$T/usr/local/bin/kos-notify" <<'EOF'

@@ -201,16 +201,40 @@ grep -q '^GRUB_TIMEOUT_STYLE' /etc/default/grub && sed -i 's/^GRUB_TIMEOUT_STYLE
 sed -i '/^#\?GRUB_TIMEOUT=/d; /^GRUB_RECORDFAIL_TIMEOUT=/d' /etc/default/grub
 printf 'GRUB_TIMEOUT=3\nGRUB_RECORDFAIL_TIMEOUT=3\n' >> /etc/default/grub
 grep -q 'splash' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 splash"/' /etc/default/grub
-# Kali ships a GRUB *theme* (via /etc/default/grub.d) whose own background
-# overrides GRUB_BACKGROUND. Swap that theme's image for the kOS one so the
-# menu actually shows kOS, not just the "kOS" text over the Kali picture.
-if [ -f /usr/share/kos/grub-bg.png ]; then
-  for TD in /boot/grub/themes/kali /usr/share/grub/themes/kali; do
-    [ -d "$TD" ] || continue
-    IMG=$(grep -oP 'desktop-image:\s*"?\K[^"]+' "$TD/theme.txt" 2>/dev/null | head -1)
-    [ -n "$IMG" ] || IMG=background.png
-    cp /usr/share/kos/grub-bg.png "$TD/$IMG" 2>/dev/null || true
-  done
+# Install the custom kOS GRUB theme (own layout, blue selection highlight,
+# countdown bar). This replaces Kali's theme, which otherwise overrides our
+# background and uses Kali's look.
+KT=/boot/grub/themes/kos
+if [ -d "$ASSETS/grub-theme" ]; then
+  rm -rf "$KT"; mkdir -p "$KT"
+  cp "$ASSETS/grub-theme/"* "$KT/" 2>/dev/null || true
+  cp /usr/share/kos/grub-bg.png "$KT/background.png" 2>/dev/null || true
+  # build the kOS boot font with grub-mkfont (ships with grub); fall back quietly
+  if command -v grub-mkfont >/dev/null 2>&1; then
+    TTF=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+    [ -f "$TTF" ] || TTF=$(fc-match -f '%{file}' 'DejaVu Sans' 2>/dev/null)
+    [ -f "$TTF" ] && grub-mkfont -s 20 -n "kOS 20" -o "$KT/kos.pf2" "$TTF" 2>/dev/null || true
+  fi
+  [ -f "$KT/kos.pf2" ] && { grep -q '^GRUB_FONT=' /etc/default/grub \
+      && sed -i "s|^GRUB_FONT=.*|GRUB_FONT=$KT/kos.pf2|" /etc/default/grub \
+      || echo "GRUB_FONT=$KT/kos.pf2" >> /etc/default/grub; }
+  # point GRUB at the kOS theme (override any Kali theme set in grub.d)
+  grep -q '^GRUB_THEME=' /etc/default/grub \
+    && sed -i "s|^GRUB_THEME=.*|GRUB_THEME=$KT/theme.txt|" /etc/default/grub \
+    || echo "GRUB_THEME=$KT/theme.txt" >> /etc/default/grub
+  mkdir -p /etc/default/grub.d
+  printf 'GRUB_THEME=%s/theme.txt\n' "$KT" > /etc/default/grub.d/zz-kos-theme.cfg
+  [ -f "$KT/kos.pf2" ] && printf 'GRUB_FONT=%s/kos.pf2\n' "$KT" >> /etc/default/grub.d/zz-kos-theme.cfg
+else
+  # fallback: no theme shipped — swap the kali theme's background image
+  if [ -f /usr/share/kos/grub-bg.png ]; then
+    for TD in /boot/grub/themes/kali /usr/share/grub/themes/kali; do
+      [ -d "$TD" ] || continue
+      IMG=$(grep -oP 'desktop-image:\s*"?\K[^"]+' "$TD/theme.txt" 2>/dev/null | head -1)
+      [ -n "$IMG" ] || IMG=background.png
+      cp /usr/share/kos/grub-bg.png "$TD/$IMG" 2>/dev/null || true
+    done
+  fi
 fi
 update-grub >/dev/null 2>&1 || true
 
