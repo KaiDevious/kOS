@@ -64,10 +64,15 @@ fi
 
 say "6/8  Broadcast: terminal MOTD + desktop notifications"
 apt-get install -y curl libnotify-bin >/dev/null 2>&1 || true   # notify-send
-# MOTD for login/SSH shells
-cat > /etc/profile.d/kos-motd.sh <<EOF2
-case \$- in *i*)
-  curl -4 -fsS --max-time 6 "$REPO/message.txt?t=\$(date +%s)" 2>/dev/null && echo ;;
+# MOTD for login/SSH shells — read the fresh GitHub API, fall back to raw
+cat > /etc/profile.d/kos-motd.sh <<'EOF2'
+case $- in *i*)
+  __kos_m=$(curl -fsS --max-time 6 -H "User-Agent: kOS" -H "Accept: application/vnd.github.raw" \
+    "https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents/message.txt" 2>/dev/null) \
+    || __kos_m=$(curl -4 -fsS --max-time 6 \
+    "https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main/message.txt?t=$(date +%s)" 2>/dev/null)
+  [ -n "$__kos_m" ] && printf '%s\n' "$__kos_m"
+  unset __kos_m ;;
 esac
 EOF2
 # also show in Konsole (non-login) via bash.bashrc
@@ -75,16 +80,35 @@ grep -q kos-motd /etc/bash.bashrc 2>/dev/null || echo '[ -r /etc/profile.d/kos-m
 # and in zsh (kOS's default shell), which doesn't read the bash files
 mkdir -p /etc/zsh
 grep -q kos-motd /etc/zsh/zshrc 2>/dev/null || echo '[ -r /etc/profile.d/kos-motd.sh ] && . /etc/profile.d/kos-motd.sh' >> /etc/zsh/zshrc
-# notifier daemon
-cat > /usr/local/bin/kos-notify.sh <<EOF3
+# notifier daemon — fresh via GitHub API (ETag-conditional, so unchanged polls
+# are free 304s), raw fallback, and clean handling of /y|n\ poll messages
+cat > /usr/local/bin/kos-notify.sh <<'EOF3'
 #!/bin/bash
-STATE="\$HOME/.cache/kos-last-notify"; mkdir -p "\$HOME/.cache"; sleep 15
+STATE="$HOME/.cache/kos-last-notify"; ETAGF="$HOME/.cache/kos-notify-etag"
+mkdir -p "$HOME/.cache"
+API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents/notify.txt"
+RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main/notify.txt"
+SITE="https://kaidevious.github.io/kOS/"
+sleep 15
 while true; do
-  MSG=\$(curl -fsS --max-time 5 "$REPO/notify.txt?t=\$(date +%s)" 2>/dev/null)
-  if [ -n "\$MSG" ] && [ "\$MSG" != "\$(cat "\$STATE" 2>/dev/null)" ]; then
-    notify-send "kOS" "\$MSG"; echo "\$MSG" > "\$STATE"
+  if MSG=$(curl -fsS --max-time 6 -H "User-Agent: kOS" -H "Accept: application/vnd.github.raw" \
+           --etag-compare "$ETAGF" --etag-save "$ETAGF" "$API" 2>/dev/null); then
+    :                                   # MSG is empty on a 304 (unchanged) -> skipped below
+  else
+    MSG=$(curl -fsS --max-time 6 "$RAW?t=$(date +%s)" 2>/dev/null)   # fallback to raw
   fi
-  sleep 60
+  if [ -n "$MSG" ] && [ "$MSG" != "$(cat "$STATE" 2>/dev/null)" ]; then
+    if printf '%s' "$MSG" | grep -qE '/[^/\\]+\\[[:space:]]*$'; then
+      Q=$(printf '%s' "$MSG" | sed -E 's:[[:space:]]*/[^/\\]+\\[[:space:]]*$::')
+      [ -z "$Q" ] && Q="New poll"
+      notify-send -a kOS "kOS poll" "$Q
+Vote: $SITE"
+    else
+      notify-send -a kOS "kOS" "$MSG"
+    fi
+    printf '%s' "$MSG" > "$STATE"
+  fi
+  sleep 15
 done
 EOF3
 chmod +x /usr/local/bin/kos-notify.sh
