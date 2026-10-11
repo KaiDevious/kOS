@@ -456,7 +456,67 @@
     .term.on,html.booted .kmark,html.booted .hero *{animation:none!important}
     #bootscreen.leave{animation:none;opacity:0}
     .navr a::after,.faq details::details-content{transition:none}
+    .hero::before{animation:none}
   }
+
+  /* ===== v4: polish pass ===== */
+  /* a touch more air between sections, and a longer runway under the hero */
+  section{padding-block:76px}
+  .hero{padding-block:118px 100px}
+  h2{font-size:clamp(25px,5vw,34px);margin-bottom:10px}
+  .lead{max-width:62ch;font-size:16.5px;line-height:1.65}
+
+  /* nav wordmark picks up the brand gradient */
+  .nav .brand{letter-spacing:-.01em}
+  .nav .brand span.w{background:linear-gradient(118deg,var(--mark-a),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* hero: layered depth — primary glow, a cooler offset bloom, and a fine
+     dot field that fades toward the edges so the wordmark sits in real space */
+  .hero::before{background:
+    radial-gradient(52% 46% at 50% 36%, var(--glow), transparent 72%),
+    radial-gradient(34% 40% at 80% 16%, color-mix(in srgb,var(--lb) 12%,transparent), transparent 70%),
+    radial-gradient(30% 34% at 16% 84%, color-mix(in srgb,var(--blue) 12%,transparent), transparent 72%);
+    animation:heroGlow 16s ease-in-out infinite}
+  .hero::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(circle at 1px 1px, color-mix(in srgb,var(--fg) 8%,transparent) 1px, transparent 1.6px);
+    background-size:40px 40px;
+    -webkit-mask-image:radial-gradient(62% 56% at 50% 42%,#000,transparent 74%);
+            mask-image:radial-gradient(62% 56% at 50% 42%,#000,transparent 74%);opacity:.6}
+  @keyframes heroGlow{0%,100%{opacity:.82}50%{opacity:1}}
+  :root[data-theme="glass"] .hero::after{opacity:.35}
+
+  /* primary button: give it body — a soft colored lift and a bright top edge */
+  .btn-primary{background:linear-gradient(165deg,color-mix(in srgb,var(--blue) 90%,#fff 10%),var(--navy));
+    box-shadow:0 12px 28px -10px color-mix(in srgb,var(--blue) 65%,transparent),inset 0 1px 0 rgba(255,255,255,.24)}
+  .btn-primary:hover{filter:brightness(1.07);transform:translateY(-2px)}
+  .btn-ghost{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .btn-ghost:hover{transform:translateY(-2px);background:var(--surface2)}
+
+  /* install cards + figure: subtle top highlight, and they rise to meet the cursor */
+  .step,.figure{box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:transform .2s,border-color .2s,box-shadow .2s}
+  .step:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--blue) 38%,var(--border));box-shadow:0 20px 44px -26px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.06)}
+  .step .n{color:var(--lb)}
+
+  /* feature rows: the icon gets a faint tile so the grid reads as structure */
+  .feat li{transition:border-color .2s}
+  .feat svg{padding:0}
+  .feat li:hover h3{color:var(--lb)}
+  .feat h3{transition:color .15s}
+
+  /* pills + chips: quiet hover lift */
+  .req,.motd{transition:border-color .15s,color .15s,transform .12s,background-color .2s}
+  .req:hover{color:var(--fg);border-color:var(--faint);transform:translateY(-1px)}
+  .chip:hover,.copy:hover{transform:translateY(-1px)}
+
+  /* faq: card edge warms on hover */
+  .faq details{transition:border-color .2s,background-color .2s}
+  .faq details:hover{border-color:color-mix(in srgb,var(--blue) 30%,var(--border))}
+  .faq details[open]{border-color:color-mix(in srgb,var(--blue) 42%,var(--border))}
+
+  /* footer: a hairline of brand color so the page closes on-key */
+  footer{position:relative}
+  footer::before{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:min(220px,40%);height:1px;
+    background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:.7}
 </style>
 </head>
 <body>
@@ -475,7 +535,7 @@
 <header>
   <div class="prog" id="prog" aria-hidden="true"></div>
   <div class="wrap nav">
-    <span class="brand"><img src="img/menu-icon.png" alt="kOS logo">kOS</span>
+    <span class="brand"><img src="img/menu-icon.png" alt="kOS logo"><span class="w">kOS</span></span>
     <nav class="navr">
       <a class="hide-sm" href="#try">Try it</a>
       <a class="hide-sm" href="#iso">Install</a>
