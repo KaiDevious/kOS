@@ -201,6 +201,17 @@ grep -q '^GRUB_TIMEOUT_STYLE' /etc/default/grub && sed -i 's/^GRUB_TIMEOUT_STYLE
 sed -i '/^#\?GRUB_TIMEOUT=/d; /^GRUB_RECORDFAIL_TIMEOUT=/d' /etc/default/grub
 printf 'GRUB_TIMEOUT=3\nGRUB_RECORDFAIL_TIMEOUT=3\n' >> /etc/default/grub
 grep -q 'splash' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 splash"/' /etc/default/grub
+# Kali ships a GRUB *theme* (via /etc/default/grub.d) whose own background
+# overrides GRUB_BACKGROUND. Swap that theme's image for the kOS one so the
+# menu actually shows kOS, not just the "kOS" text over the Kali picture.
+if [ -f /usr/share/kos/grub-bg.png ]; then
+  for TD in /boot/grub/themes/kali /usr/share/grub/themes/kali; do
+    [ -d "$TD" ] || continue
+    IMG=$(grep -oP 'desktop-image:\s*"?\K[^"]+' "$TD/theme.txt" 2>/dev/null | head -1)
+    [ -n "$IMG" ] || IMG=background.png
+    cp /usr/share/kos/grub-bg.png "$TD/$IMG" 2>/dev/null || true
+  done
+fi
 update-grub >/dev/null 2>&1 || true
 
 say "Plymouth boot splash"
