@@ -122,7 +122,7 @@ X-GNOME-Autostart-enabled=true
 NoDisplay=true
 EOF4
 # apply live now: stop any running notifier and relaunch the new one in the user's session
-pkill -f /usr/local/bin/kos-notify.sh 2>/dev/null || true
+pkill -f /usr/local/bin/kos-notify 2>/dev/null || true
 KOS_U="${SUDO_USER:-$USER}"; KOS_UID="$(id -u "$KOS_U" 2>/dev/null || true)"
 if [ -n "$KOS_UID" ] && [ -S "/run/user/$KOS_UID/bus" ]; then
   rm -f "/home/$KOS_U/.cache/kos-last-notify" "/home/$KOS_U/.cache/kos-notify-etag" 2>/dev/null || true
