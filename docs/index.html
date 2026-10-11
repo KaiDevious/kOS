@@ -895,22 +895,41 @@ sudo bash scripts/kos-setup.sh</code></pre>
     });
   });
 
-  /* ---------- live MOTD ---------- */
-  var MOTD_URL='https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main/message.txt';
+  /* ---------- broadcaster: MOTD + live notifications ----------
+     raw.githubusercontent.com caches for 5 min and IGNORES ?t= cache-busters, so a
+     pushed update used to lag by minutes. We read the GitHub API contents endpoint
+     instead (fresh), with an ETag conditional request so unchanged polls return 304
+     and don't count against the rate limit, and fall back to raw on any error. */
+  var GH_API='https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents/';
+  var GH_RAW='https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main/';
+  function pull(file,etag){
+    var h={'Accept':'application/vnd.github.raw'};
+    if(etag&&etag.tag)h['If-None-Match']=etag.tag;
+    return fetch(GH_API+file,{headers:h,cache:'no-store'}).then(function(r){
+      if(r.status===304)return {same:true};
+      if(!r.ok)throw 0;
+      var et=r.headers.get('etag');if(etag&&et)etag.tag=et;
+      return r.text().then(function(t){return {text:t}});
+    }).catch(function(){
+      return fetch(GH_RAW+file+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null}).then(function(t){return {text:t}}).catch(function(){return null});
+    });
+  }
+
+  /* MOTD — shown once on load */
   var motdText=null;
-  var motdReady=fetch(MOTD_URL+'?t='+Date.now()).then(function(r){return r.ok?r.text():null}).then(function(t){
-    t=(t||'').trim(); if(!t) return null;
+  var motdReady=pull('message.txt',null).then(function(res){
+    var t=res&&res.text!=null?(''+res.text).trim():'';if(!t)return null;
     motdText=t;
     document.getElementById('motdTxt').textContent=t;
     document.getElementById('motd').hidden=false;
     return t;
   }).catch(function(){return null});
 
-  /* ---------- live broadcast notifications ---------- */
-  var NTF_URL='https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main/notify.txt';
+  /* live broadcast notifications */
   (function(){
     var wrap=document.createElement('div');wrap.className='ntf-wrap';wrap.setAttribute('aria-live','polite');document.body.appendChild(wrap);
     var seen=null;try{seen=localStorage.getItem('kos-ntf-seen')}catch(e){}
+    var etag={tag:null};
     function show(msg){
       var t=document.createElement('div');t.className='ntf';
       var d=new Date(),hh=d.getHours(),ap=hh<12?'AM':'PM';hh=hh%12||12;
@@ -923,15 +942,15 @@ sudo bash scripts/kos-setup.sh</code></pre>
       setTimeout(close,9000);
     }
     function check(){
-      fetch(NTF_URL+'?t='+Date.now()).then(function(r){return r.ok?r.text():null}).then(function(t){
-        t=(t||'').trim();if(!t)return;
-        if(t===seen)return;            // already shown this one
+      pull('notify.txt',etag).then(function(res){
+        if(!res||res.same)return;                 // 304 / unchanged
+        var t=(''+(res.text||'')).trim();if(!t)return;
+        if(t===seen)return;                        // already shown this exact message
         var first=seen===null;seen=t;try{localStorage.setItem('kos-ntf-seen',t)}catch(e){}
-        // on a brand-new visitor, wait for the page to settle before the first pop
-        setTimeout(function(){show(t)},first?1600:0);
+        setTimeout(function(){show(t)},first?1600:0);  // let a fresh page settle before the first pop
       }).catch(function(){});
     }
-    check();setInterval(check,45000);
+    check();setInterval(check,30000);
     document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});
   })();
 
