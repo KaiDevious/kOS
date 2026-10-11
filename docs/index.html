@@ -520,6 +520,18 @@
   </ul>
 </section>
 
+<section class="wrap">
+  <h2>The look</h2>
+  <p class="lead">Dark and light, same identity. Drag across to compare.</p>
+  <div class="cmp" id="cmp" style="--pos:50%">
+    <img src="img/wallpaper-dark.webp" alt="kOS dark wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async">
+    <div class="cmp-top"><img src="img/wallpaper-light.webp" alt="kOS light wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async"></div>
+    <input type="range" min="0" max="100" value="50" step="0.5" aria-label="Slide between the dark and light wallpaper">
+    <span class="cmp-line" aria-hidden="true"><span class="cmp-knob"></span></span>
+    <span class="cmp-tag l" aria-hidden="true">Dark</span><span class="cmp-tag r" aria-hidden="true">Light</span>
+  </div>
+</section>
+
 <section class="wrap" id="try">
   <h2>Try the kOS terminal</h2>
   <p class="lead">A pretend kOS terminal, right in your browser. Type <code>help</code> to see what it can do.</p>
@@ -537,18 +549,6 @@
   <p class="gone" id="gone" hidden>[ terminal not found ]</p>
   <div class="chips" id="chips">
     <button class="chip">fastfetch</button><button class="chip">specs</button><button class="chip">motd</button><button class="chip">help</button><button class="chip">theme light</button><button class="chip">sudo rm -rf /</button>
-  </div>
-</section>
-
-<section class="wrap">
-  <h2>The look</h2>
-  <p class="lead">Dark and light, same identity. Drag across to compare.</p>
-  <div class="cmp" id="cmp" style="--pos:50%">
-    <img src="img/wallpaper-dark.webp" alt="kOS dark wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async">
-    <div class="cmp-top"><img src="img/wallpaper-light.webp" alt="kOS light wallpaper" draggable="false" width="1920" height="1080" loading="lazy" decoding="async"></div>
-    <input type="range" min="0" max="100" value="50" step="0.5" aria-label="Slide between the dark and light wallpaper">
-    <span class="cmp-line" aria-hidden="true"><span class="cmp-knob"></span></span>
-    <span class="cmp-tag l" aria-hidden="true">Dark</span><span class="cmp-tag r" aria-hidden="true">Light</span>
   </div>
 </section>
 
