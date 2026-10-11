@@ -1363,8 +1363,64 @@ sudo bash scripts/kos-setup.sh</code></pre>
     toast('coins reset','total: 0. it\'s like they never existed');
     return 'coins reset. total: 0';
   }
+  // hidden console command: `voical` -> downloads VOICAL.txt with the visitor's browser specs
+  function voicalFile(){
+    var ua=navigator.userAgent,uad=navigator.userAgentData;
+    function osName(){var p=(uad&&uad.platform)||'';
+      if(/win/i.test(p)||/Windows/.test(ua))return 'Windows';
+      if(/android/i.test(p)||/Android/.test(ua))return 'Android';
+      if(/iPhone|iPad|iPod/.test(ua))return 'iOS / iPadOS';
+      if(/mac/i.test(p)||/Mac OS X/.test(ua))return 'macOS';
+      if(/CrOS/.test(ua)||/chrome os/i.test(p))return 'ChromeOS';
+      if(/linux/i.test(p)||/Linux/.test(ua))return 'Linux';return 'unknown'}
+    function browser(){var m;
+      if((m=ua.match(/Edg\/(\d+)/)))return 'Edge '+m[1];
+      if((m=ua.match(/OPR\/(\d+)/)))return 'Opera '+m[1];
+      if((m=ua.match(/Firefox\/(\d+)/)))return 'Firefox '+m[1];
+      if((m=ua.match(/Chrome\/(\d+)/)))return 'Chrome '+m[1];
+      if((m=ua.match(/Version\/(\d+).*Safari/)))return 'Safari '+m[1];return 'unknown'}
+    function gpu(){try{var c=document.createElement('canvas'),gl=c.getContext('webgl')||c.getContext('experimental-webgl');if(!gl)return 'hidden';
+      var d=gl.getExtension('WEBGL_debug_renderer_info'),r=String(d?gl.getParameter(d.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER));
+      var m=r.match(/^ANGLE \((.*)\)$/);if(m){var parts=m[1].split(/,\s*/);r=parts.length>1?parts[1]:parts[0]}
+      return r.replace(/\s*\(0x[0-9a-f]+\)/ig,'').replace(/\s*Direct3D.*$/i,'').trim()}catch(e){return 'hidden'}}
+    function gb(n){return n>=1073741824?(n/1073741824).toFixed(1)+' GB':(n/1048576).toFixed(0)+' MB'}
+    var mem=navigator.deviceMemory,cores=navigator.hardwareConcurrency,sw=screen.width,sh=screen.height,dpr=window.devicePixelRatio||1;
+    var rows=[['OS',osName()],['Browser',browser()],['CPU',cores?cores+' threads':'hidden'],
+      ['RAM',mem?(mem>=8?'8+ GB':'~'+mem+' GB'):'hidden'],['GPU',gpu()],
+      ['Screen',sw+' x '+sh+(dpr!==1?' ('+Math.round(sw*dpr)+' x '+Math.round(sh*dpr)+' real px, '+dpr+'x)':'')],
+      ['Language',navigator.language||'unknown'],['Timezone',(Intl.DateTimeFormat().resolvedOptions().timeZone)||'unknown']];
+    var jobs=[];
+    if(navigator.storage&&navigator.storage.estimate)jobs.push(navigator.storage.estimate().then(function(e){rows.push(['Storage','~'+gb(e.quota)+' free for websites'])}).catch(function(){}));
+    if(navigator.getBattery)jobs.push(navigator.getBattery().then(function(bt){var full=bt.level===1&&bt.charging&&bt.chargingTime===0;rows.push(['Battery',full?'plugged in':Math.round(bt.level*100)+'%'+(bt.charging?' (charging)':'')])}).catch(function(){}));
+    Promise.all(jobs).then(function(){
+      var w=Math.max.apply(null,rows.map(function(r){return r[0].length}));
+      var specs=rows.map(function(r){return (r[0]+':').padEnd(w+2)+r[1]}).join('\n');
+      var txt=
+'  VOICAL.txt\n'+
+'  =====================================\n\n'+
+'  you scanned me. so i scanned back.\n'+
+'  here is everything your browser just told me,\n'+
+'  without you ever asking it to:\n\n'+
+specs+'\n\n'+
+'  none of this left your machine. i didn\'t send it\n'+
+'  anywhere. i just wanted you to see what a website\n'+
+'  can read about you in half a second.\n\n'+
+'  be careful out there.\n\n'+
+'  your welcome.\n\n'+
+'                                        - VOICAL\n'+
+'  generated '+new Date().toString()+'\n';
+      try{
+        var blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+        a.href=url;a.download='VOICAL.txt';document.body.appendChild(a);a.click();
+        setTimeout(function(){URL.revokeObjectURL(url);a.remove()},1500);
+        toast('VOICAL.txt','check your downloads. your welcome.');
+      }catch(e){}
+    });
+    return 'reading you... VOICAL.txt is on its way to your downloads.';
+  }
   try{Object.defineProperty(window,'KOSISGREAT',{get:coins,configurable:true})}catch(e){}
   try{Object.defineProperty(window,'COINRESET',{get:coinReset,configurable:true})}catch(e){}
+  try{Object.defineProperty(window,'voical',{get:voicalFile,configurable:true})}catch(e){}
   ['kos','hack','matrix','sudo'].forEach(function(w){
     try{Object.defineProperty(window,w,{get:enter,configurable:true})}catch(e){}
   });
