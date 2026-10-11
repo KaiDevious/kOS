@@ -950,7 +950,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
         setTimeout(function(){show(t)},first?1600:0);  // let a fresh page settle before the first pop
       }).catch(function(){});
     }
-    check();setInterval(check,30000);
+    check();setInterval(check,15000);
     document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});
   })();
 
