@@ -569,6 +569,39 @@
   footer{position:relative}
   footer::before{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:min(220px,40%);height:1px;
     background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:.7}
+
+  /* ===== coin shop ===== */
+  #coinshop{position:fixed;inset:0;z-index:9700;display:none;place-items:center;padding:20px;background:rgba(4,4,8,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  #coinshop.open{display:grid;animation:fadeIn .25s ease}
+  .shop{width:min(640px,100%);max-height:calc(100vh - 40px);overflow:auto;background:linear-gradient(180deg,#11131a,#0b0d12);border:1px solid #3a2f12;border-radius:20px;box-shadow:0 30px 90px -24px rgba(0,0,0,.75),inset 0 1px 0 rgba(245,197,66,.12);padding:22px;color:#f3e6c4;font-family:var(--display);animation:modalIn .3s cubic-bezier(.2,.8,.2,1)}
+  .shop-h{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .shop-h h2{font-family:var(--mark);font-size:23px;color:#f5c542;letter-spacing:.02em;margin:0;flex:1}
+  .shop-bal{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#f5c542;background:#15110a;border:1px solid #3a2f12;border-radius:999px;padding:6px 14px;font-size:15px;white-space:nowrap}
+  .shop-bal .c{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#f5c542 45%,#b9851b);box-shadow:inset 0 0 0 2px #d9a52b;display:grid;place-items:center;color:#7a5410;font-weight:800;font-size:12px}
+  .shop-x{width:32px;height:32px;border-radius:9px;border:1px solid #3a2f12;background:#15110a;color:#a89a78;cursor:pointer;font-size:15px;line-height:1}
+  .shop-x:hover{color:#f3e6c4}
+  .shop-sub{color:#a89a78;font-size:13px;margin:8px 0 16px}
+  .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:520px){.shop-grid{grid-template-columns:1fr}}
+  .shop-item{background:#12141a;border:1px solid #2a2f3a;border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:5px;min-width:0}
+  .shop-item .ic{font-size:29px;line-height:1}
+  .shop-item h3{font-size:15.5px;color:#f3e6c4;margin:2px 0 0}
+  .shop-item p{font-size:12.5px;color:#9aa0ab;flex:1;margin:0}
+  .shop-buy{margin-top:8px;border:1px solid #b9851b;background:linear-gradient(#f5c542,#b9851b);color:#3a2708;font-weight:700;font-family:var(--display);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13.5px;transition:filter .15s,transform .1s}
+  .shop-buy:hover{filter:brightness(1.08)} .shop-buy:active{transform:scale(.97)}
+  .shop-buy.owned{background:#15110a;color:#f5c542;border-color:#3a2f12}
+  .shop-buy.owned.off{color:#8c8676}
+  /* confetti + trail + crown + gold terminal */
+  .confetti{position:fixed;top:-14px;z-index:9999;width:9px;height:14px;pointer-events:none;will-change:transform,opacity}
+  .trail-dot{position:fixed;z-index:9998;width:10px;height:10px;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 35% 30%,#fff3b0,#f5c542 55%,#b9851b);box-shadow:0 0 10px rgba(245,197,66,.6);transform:translate(-50%,-50%);animation:trailFade .7s ease-out forwards}
+  @keyframes trailFade{to{opacity:0;transform:translate(-50%,-50%) scale(.2)}}
+  #kmark{position:relative}
+  .kos-crown{position:absolute;left:50%;top:0;transform:translate(-50%,-92%);font-size:clamp(34px,7vw,62px);color:#f5c542;pointer-events:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));animation:crownBob 3.2s ease-in-out infinite}
+  @keyframes crownBob{0%,100%{transform:translate(-50%,-92%) rotate(-4deg)}50%{transform:translate(-50%,-104%) rotate(4deg)}}
+  body.goldterm .term{border-color:#5a4410;box-shadow:0 30px 70px -28px rgba(0,0,0,.65),0 0 0 1px rgba(245,197,66,.3) inset,0 0 44px -12px rgba(245,197,66,.3)}
+  body.goldterm .term .bar{background:linear-gradient(180deg,#2a2109,#1c1606);border-bottom-color:#5a4410}
+  body.goldterm .t-b{color:#f5c542} body.goldterm .t-p{color:#ffd76a} body.goldterm .t-k{color:#e0a92b}
+  @media(prefers-reduced-motion:reduce){.kos-crown{animation:none}.trail-dot{animation:trailFade .4s linear forwards}}
 </style>
 </head>
 <body>
@@ -1173,6 +1206,7 @@ sudo bash scripts/kos-setup.sh</code></pre>
     var stage=0;
     function reply(line){
       var w=line.trim();
+      if(/^coinshop$/i.test(w)){if(window.__openCoinShop)window.__openCoinShop();return}
       if(stage===0&&/^no\b/i.test(w)){
         stage=9;ready=false;
         setTimeout(function(){
@@ -1819,6 +1853,103 @@ specs+'\n\n'+
   open.addEventListener('click',show);
   x.addEventListener('click',function(){dlg.close()});
   dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});   // click outside the card
+})();
+</script>
+<script>
+/* ===== coin shop ===== */
+(function(){
+  var KEY='kos-coins',OWN='kos-shop-own',ACT='kos-shop-act';
+  function coins(){try{return parseInt(localStorage.getItem(KEY),10)||0}catch(e){return 0}}
+  function setCoins(n){try{localStorage.setItem(KEY,Math.max(0,n|0))}catch(e){}}
+  function list(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+  function save(k,a){try{localStorage.setItem(k,JSON.stringify(a))}catch(e){}}
+  function owns(id){return list(OWN).indexOf(id)>=0}
+  function active(id){return list(ACT).indexOf(id)>=0}
+  function setActive(id,on){var a=list(ACT),i=a.indexOf(id);if(on&&i<0)a.push(id);if(!on&&i>=0)a.splice(i,1);save(ACT,a)}
+  function fmt(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+
+  var items=[
+    {id:'crown',   ic:'👑',price:300,    kind:'cosmetic',  name:'Logo Crown',     desc:'A crown above the kOS wordmark. Earned.'},
+    {id:'trail',   ic:'✨',price:500,    kind:'cosmetic',  name:'Cursor Trail',   desc:'Gold sparkles chase your cursor everywhere.'},
+    {id:'goldterm',ic:'🟡',price:400,    kind:'cosmetic',  name:'Gold Terminal',  desc:'The site terminal, dipped in gold.'},
+    {id:'confetti',ic:'🎉',price:150,    kind:'consumable',name:'Confetti Cannon',desc:'Fire it. Then fire it again.'},
+    {id:'nothing', ic:'📦',price:1,      kind:'nothing',   name:'Nothing',        desc:'Absolutely nothing. A steal at this price.'},
+    {id:'iso',     ic:'💿',price:1000000,kind:'iso',       name:'The real kOS ISO',desc:'The actual operating system. Surely worth it.'}
+  ];
+  function byId(id){for(var i=0;i<items.length;i++)if(items[i].id===id)return items[i]}
+
+  /* ---- effects ---- */
+  function toast(title,sub){var t=document.createElement('div');t.className='coin-toast';t.setAttribute('role','status');
+    t.innerHTML='<span class="c">k</span><span><b>'+title+'</b><small>'+sub+'</small></span>';
+    document.body.appendChild(t);setTimeout(function(){t.remove()},4000)}
+  function confetti(){var cols=['#f5c542','#86C8FF','#2C62CF','#fff3b0','#ffd76a','#8dffa3'];
+    for(var i=0;i<90;i++){(function(k){var d=document.createElement('div');d.className='confetti';
+      d.style.left=(innerWidth*(0.28+Math.random()*0.44))+'px';d.style.background=cols[k%cols.length];
+      if(Math.random()<0.3)d.style.borderRadius='50%';
+      document.body.appendChild(d);var dur=1800+Math.random()*1500,dx=(Math.random()-0.5)*320,rot=360+Math.random()*720;
+      d.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate('+dx+'px,'+(innerHeight+50)+'px) rotate('+rot+'deg)',opacity:0.9}],{duration:dur,easing:'cubic-bezier(.2,.6,.4,1)'});
+      setTimeout(function(){d.remove()},dur)})(i)}}
+  var trailOn=false,lastT=0;
+  function trailMove(e){var now=Date.now();if(now-lastT<34)return;lastT=now;
+    var d=document.createElement('div');d.className='trail-dot';d.style.left=e.clientX+'px';d.style.top=e.clientY+'px';
+    document.body.appendChild(d);setTimeout(function(){d.remove()},700)}
+  function setTrail(on){if(on&&!trailOn){document.addEventListener('mousemove',trailMove,{passive:true});trailOn=true}else if(!on&&trailOn){document.removeEventListener('mousemove',trailMove);trailOn=false}}
+  function setCrown(on){var km=document.getElementById('kmark');if(!km)return;var c=km.querySelector('.kos-crown');
+    if(on&&!c){c=document.createElement('span');c.className='kos-crown';c.textContent='👑';c.setAttribute('aria-hidden','true');km.appendChild(c)}else if(!on&&c){c.remove()}}
+  function setGold(on){document.body.classList.toggle('goldterm',!!on)}
+  function applyPerks(){setTrail(active('trail'));setCrown(active('crown'));setGold(active('goldterm'))}
+
+  /* ---- buying ---- */
+  function deny(it){toast('not enough coins','need '+fmt(it.price)+'. (psst: KOSISGREAT in the console)')}
+  function buy(id){var it=byId(id),c=coins();
+    if(it.kind==='cosmetic'){
+      if(owns(id)){setActive(id,!active(id));applyPerks();render();return}
+      if(c<it.price)return deny(it);
+      setCoins(c-it.price);var o=list(OWN);o.push(id);save(OWN,o);setActive(id,true);applyPerks();
+      toast('unlocked '+it.name,'equipped. '+it.ic);render();
+    }else if(it.kind==='consumable'){
+      if(c<it.price)return deny(it);setCoins(c-it.price);confetti();toast('CONFETTI','🎉🎉🎉');render();
+    }else if(it.kind==='nothing'){
+      if(c<1)return deny(it);setCoins(c-1);toast('you bought Nothing','it was already yours. enjoy.');render();
+    }else if(it.kind==='iso'){
+      if(c<it.price){toast('you can\'t afford it','nobody can. it\'s free on the site →');return}
+      setCoins(c-it.price);toast('you... actually bought it?','the ISO was free this whole time. go install it →');render();
+    }
+  }
+
+  /* ---- UI ---- */
+  var wrap=null;
+  function build(){
+    wrap=document.createElement('div');wrap.id='coinshop';
+    wrap.innerHTML='<div class="shop" role="dialog" aria-label="Coin shop">'+
+      '<div class="shop-h"><h2>COIN SHOP</h2><span class="shop-bal"><span class="c">k</span><span id="shopBal">0</span></span>'+
+      '<button class="shop-x" id="shopX" aria-label="Close">✕</button></div>'+
+      '<p class="shop-sub">Pretend coins. Real nonsense. Spend wisely (or don\'t).</p>'+
+      '<div class="shop-grid" id="shopGrid"></div></div>';
+    document.body.appendChild(wrap);
+    wrap.addEventListener('click',function(e){if(e.target===wrap)close()});
+    wrap.querySelector('#shopX').addEventListener('click',close);
+    wrap.querySelector('#shopGrid').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-buy]');if(b)buy(b.getAttribute('data-buy'))});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&wrap.classList.contains('open'))close()});
+  }
+  function render(){
+    if(!wrap)return;wrap.querySelector('#shopBal').textContent=fmt(coins());
+    var g=wrap.querySelector('#shopGrid'),html='';
+    items.forEach(function(it){
+      var label,cls='shop-buy';
+      if(it.kind==='cosmetic'&&owns(it.id)){cls+=' owned'+(active(it.id)?'':' off');label=active(it.id)?'ON ✓':'OFF';}
+      else label='BUY '+fmt(it.price);
+      html+='<div class="shop-item"><div class="ic">'+it.ic+'</div><h3>'+it.name+'</h3><p>'+it.desc+'</p>'+
+        '<button class="'+cls+'" data-buy="'+it.id+'">'+label+'</button></div>';
+    });
+    g.innerHTML=html;
+  }
+  function open(){if(!wrap)build();render();wrap.classList.add('open')}
+  function close(){if(wrap)wrap.classList.remove('open')}
+
+  window.__openCoinShop=open;
+  try{Object.defineProperty(window,'COINSHOP',{get:function(){open();return 'opening the coin shop...'},configurable:true})}catch(e){}
+  applyPerks();
 })();
 </script>
 </body>
