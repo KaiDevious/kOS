@@ -6,7 +6,8 @@ set -e
 cd "$(dirname "$0")"                 # packaging/
 APT="../docs/apt"
 mkdir -p "$APT"
-cp -f kos-desktop_1.0.1.deb "$APT/"
+rm -f "$APT"/kos-desktop_*.deb
+cp -f "$(ls -1 kos-desktop_*.deb | sort -V | tail -1)" "$APT/"
 
 cd "$APT"
 dpkg-scanpackages --multiversion . > Packages

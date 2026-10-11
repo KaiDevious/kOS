@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build kos-desktop_1.0.1.deb from the repo.
+# Build kos-desktop (version set by VERSION below) from the repo.
 #
 # IMPORTANT: build with xz (or gzip) compression, NOT zstd. Debian/Kali `apt`
 # rejects zstd-compressed .debs with "Unsupported file ... given on commandline"
@@ -11,16 +11,20 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-DEB="kos-desktop_1.0.1.deb"
+VERSION="1.0.2"
+DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
 SITE="https://kaidevious.github.io/kOS/"
 
-[ -f "$DEB" ] || { echo "need an existing $DEB as the asset template"; exit 1; }
+# use the newest existing kos-desktop_*.deb as the asset template (images, DEBIAN/)
+TEMPLATE="$(ls -1 kos-desktop_*.deb 2>/dev/null | sort -V | tail -1)"
+[ -n "$TEMPLATE" ] || { echo "need an existing kos-desktop_*.deb as the asset template"; exit 1; }
 
 T="$(mktemp -d)"
 trap 'rm -rf "$T"' EXIT
-dpkg-deb -R "$DEB" "$T"               # unpack current package (images, DEBIAN/) as the base
+dpkg-deb -R "$TEMPLATE" "$T"           # unpack current package (images, DEBIAN/) as the base
+sed -i "s/^Version:.*/Version: ${VERSION}/" "$T/DEBIAN/control"   # bump version
 
 # --- refresh the parts that are maintained in the repo ---
 install -D -m755 "$REPO/scripts/kos-setup.sh"      "$T/usr/local/bin/kos-setup"
