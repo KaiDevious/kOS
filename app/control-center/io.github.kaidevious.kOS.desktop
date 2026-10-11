@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=kOS Control Center
+Comment=Switch kOS themes and find your way around kOS
+Exec=kos-control-center
+Icon=io.github.kaidevious.kOS
+Terminal=false
+Type=Application
+Categories=Settings;DesktopSettings;System;
+Keywords=kOS;theme;lamplight;liquid glass;settings;

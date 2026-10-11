@@ -1,0 +1,33 @@
+{
+  "app-id": "io.github.kaidevious.kOS",
+  "runtime": "org.gnome.Platform",
+  "runtime-version": "48",
+  "sdk": "org.gnome.Sdk",
+  "command": "kos-control-center",
+  "finish-args": [
+    "--share=ipc",
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--device=dri",
+    "--talk-name=org.freedesktop.Flatpak"
+  ],
+  "modules": [
+    {
+      "name": "kos-control-center",
+      "buildsystem": "simple",
+      "build-commands": [
+        "install -Dm755 main.py /app/bin/kos-control-center",
+        "install -Dm644 io.github.kaidevious.kOS.desktop /app/share/applications/io.github.kaidevious.kOS.desktop",
+        "install -Dm644 io.github.kaidevious.kOS.metainfo.xml /app/share/metainfo/io.github.kaidevious.kOS.metainfo.xml",
+        "install -Dm644 logo.png /app/share/icons/hicolor/256x256/apps/io.github.kaidevious.kOS.png",
+        "install -Dm644 logo.png /app/share/kos/logo.png"
+      ],
+      "sources": [
+        { "type": "file", "path": "main.py" },
+        { "type": "file", "path": "io.github.kaidevious.kOS.desktop" },
+        { "type": "file", "path": "io.github.kaidevious.kOS.metainfo.xml" },
+        { "type": "file", "path": "logo.png" }
+      ]
+    }
+  ]
+}
