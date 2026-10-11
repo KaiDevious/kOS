@@ -11,7 +11,7 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.0.2"
+VERSION="1.0.3"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
@@ -28,8 +28,8 @@ sed -i "s/^Version:.*/Version: ${VERSION}/" "$T/DEBIAN/control"   # bump version
 sed -i 's/sudo kos-setup/sudo kos setup/g' "$T/DEBIAN/postinst" 2>/dev/null || true
 
 # --- refresh the parts that are maintained in the repo ---
-install -D -m755 "$REPO/scripts/kos-setup.sh"      "$T/usr/local/bin/kos-setup"
-install -D -m755 "$REPO/scripts/kos"               "$T/usr/local/bin/kos"
+install -D -m755 "$REPO/scripts/kos-setup.sh"      "$T/usr/bin/kos-setup"
+install -D -m755 "$REPO/scripts/kos"               "$T/usr/bin/kos"
 install -D -m644 "$REPO/branding/kos-ascii.txt"    "$T/usr/share/kos/kos-ascii.txt"
 
 # desktop themes: KDE color schemes + matching wallpapers (installed by kos-setup)

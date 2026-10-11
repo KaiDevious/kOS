@@ -62,7 +62,7 @@ done
 
 # kos-theme: apply a kOS desktop theme (color scheme + matching wallpaper) for the current user.
 #   kos-theme lamplight | liquidglass | dark | light
-cat > /usr/local/bin/kos-theme <<'EOF0'
+cat > /usr/bin/kos-theme <<'EOF0'
 #!/bin/bash
 # Apply a kOS desktop look: color scheme + matching wallpaper, live.
 WP=/usr/share/wallpapers/kOS
@@ -80,10 +80,10 @@ fi
 command -v plasma-apply-wallpaperimage >/dev/null 2>&1 && plasma-apply-wallpaperimage "$PAPER" >/dev/null 2>&1 || true
 echo "kOS theme applied: ${1}"
 EOF0
-chmod 755 /usr/local/bin/kos-theme
+chmod 755 /usr/bin/kos-theme
 
 # umbrella 'kos' command (so 'sudo kos setup', 'kos theme ...' work)
-[ -f "$HERE/kos" ] && install -D -m755 "$HERE/kos" /usr/local/bin/kos
+[ -f "$HERE/kos" ] && install -D -m755 "$HERE/kos" /usr/bin/kos
 
 say "5/8  Login screen background (SDDM)"
 if [ -d /usr/share/sddm/themes/breeze ]; then
