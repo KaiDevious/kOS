@@ -321,6 +321,26 @@
   .ntf .x{flex:none;align-self:flex-start;width:20px;height:20px;border:0;background:none;color:var(--faint);cursor:pointer;font-size:15px;line-height:1;border-radius:5px}
   .ntf .x:hover{color:var(--fg);background:var(--surface2)}
   @media(prefers-reduced-motion:reduce){.ntf{transition:opacity .3s}.ntf,.ntf.in,.ntf.out{transform:none}}
+  /* poll notification */
+  .ntf.poll{flex-direction:column;align-items:stretch;gap:11px;width:min(360px,calc(100vw - 32px))}
+  .ntf.poll .hd{margin:0}
+  .ntf.poll .hd .x{margin-left:8px;align-self:center}
+  .ntf .q{font-size:14px;color:var(--fg);font-weight:600;line-height:1.4}
+  .ntf-opts{display:flex;gap:8px}
+  .ntf-opts[hidden],.ntf-res[hidden]{display:none}
+  .ntf-vote{flex:1;border:1px solid var(--border);background:var(--surface2);color:var(--fg);border-radius:10px;padding:10px;font:600 14px var(--display);cursor:pointer;transition:border-color .15s,color .15s,transform .1s}
+  .ntf-vote:active{transform:scale(.97)}
+  .ntf-vote.yes:hover{border-color:#3ddc84;color:#3ddc84}
+  .ntf-vote.no:hover{border-color:#ff5f57;color:#ff5f57}
+  .ntf-res{display:grid;gap:9px}
+  .pollrow{display:grid;grid-template-columns:30px 1fr 42px;align-items:center;gap:9px;font-size:12.5px;color:var(--muted)}
+  .pollrow .track{height:11px;border-radius:999px;background:var(--surface2);overflow:hidden}
+  .pollrow .fill{height:100%;width:0;border-radius:999px;transition:width .55s cubic-bezier(.2,.8,.2,1)}
+  .pollrow.yes .fill{background:linear-gradient(90deg,#2faa63,#3ddc84)}
+  .pollrow.no .fill{background:linear-gradient(90deg,#c9453f,#ff5f57)}
+  .pollrow .pct{text-align:right;font-variant-numeric:tabular-nums;color:var(--fg);font-weight:600}
+  .ntf .foot{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--faint)}
+  .ntf .foot .cd{font-variant-numeric:tabular-nums}
   /* coins toast */
   .coin-toast{position:fixed;left:16px;bottom:16px;z-index:9000;display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;background:#0b0d10;border:1px solid #3a2f12;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#f3e6c4;font-family:var(--display);animation:coinIn .35s ease-out,coinOut .8s ease-in 3s forwards}
   .coin-toast .c{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#f5c542 45%,#b9851b);box-shadow:inset 0 0 0 3px #d9a52b,0 0 14px rgba(245,197,66,.45);display:grid;place-items:center;color:#7a5410;font-weight:800;font-size:15px}
@@ -925,29 +945,83 @@ sudo bash scripts/kos-setup.sh</code></pre>
     return t;
   }).catch(function(){return null});
 
-  /* live broadcast notifications */
+  /* live broadcast notifications + Yes/No polls */
+  // A notify.txt that ends with  /y|n\  becomes a 30-second Yes/No poll.
+  // Votes go to a Firebase Realtime DB over REST (POLL_DB). Empty => local demo
+  // (counts live only on this device). Set POLL_DB to go real across everyone.
+  var POLL_DB='';   // e.g. 'https://kos-xxxx-default-rtdb.firebaseio.com'
+  var POLL_RE=/\s*\/y\|n\\\s*$/;   // trailing  /y|n\
+  function pollId(q){var h=5381;for(var i=0;i<q.length;i++)h=((h<<5)+h+q.charCodeAt(i))>>>0;return 'p'+h.toString(36)}
+  function castVote(id,choice){
+    if(POLL_DB){return fetch(POLL_DB+'/polls/'+id+'/votes.json',{method:'POST',body:JSON.stringify({c:choice,t:Date.now()})}).catch(function(){})}
+    try{var k='kos-pollc-'+id,c=JSON.parse(localStorage.getItem(k)||'{"yes":0,"no":0}');c[choice]=(c[choice]||0)+1;localStorage.setItem(k,JSON.stringify(c))}catch(e){}
+    return Promise.resolve();
+  }
+  function getTally(id){
+    if(POLL_DB){return fetch(POLL_DB+'/polls/'+id+'/votes.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(o){var y=0,n=0;if(o)for(var k in o){if(o[k]&&o[k].c==='yes')y++;else if(o[k]&&o[k].c==='no')n++}return{yes:y,no:n}}).catch(function(){return{yes:0,no:0}})}
+    var c={yes:0,no:0};try{c=JSON.parse(localStorage.getItem('kos-pollc-'+id)||'{"yes":0,"no":0}')}catch(e){}
+    return Promise.resolve(c);
+  }
   (function(){
     var wrap=document.createElement('div');wrap.className='ntf-wrap';wrap.setAttribute('aria-live','polite');document.body.appendChild(wrap);
     var seen=null;try{seen=localStorage.getItem('kos-ntf-seen')}catch(e){}
     var etag={tag:null};
+    function hdr(){var d=new Date(),hh=d.getHours(),ap=hh<12?'AM':'PM';hh=hh%12||12;var mm=(d.getMinutes()<10?'0':'')+d.getMinutes();return hh+':'+mm+' '+ap}
     function show(msg){
       var t=document.createElement('div');t.className='ntf';
-      var d=new Date(),hh=d.getHours(),ap=hh<12?'AM':'PM';hh=hh%12||12;
-      var mm=(d.getMinutes()<10?'0':'')+d.getMinutes();
-      t.innerHTML='<span class="ic">k</span><div class="bd"><div class="hd"><span class="dot"></span><b>kOS</b><time>'+hh+':'+mm+' '+ap+'</time></div><div class="msg"></div></div><button class="x" aria-label="Dismiss">&#10005;</button>';
+      t.innerHTML='<span class="ic">k</span><div class="bd"><div class="hd"><span class="dot"></span><b>kOS</b><time>'+hdr()+'</time></div><div class="msg"></div></div><button class="x" aria-label="Dismiss">&#10005;</button>';
       t.querySelector('.msg').textContent=msg;
       wrap.appendChild(t);requestAnimationFrame(function(){t.classList.add('in')});
       function close(){t.classList.remove('in');t.classList.add('out');setTimeout(function(){t.remove()},500)}
       t.querySelector('.x').addEventListener('click',close);
       setTimeout(close,9000);
     }
+    function showPoll(q,id){
+      var DURATION=30000;
+      var t=document.createElement('div');t.className='ntf poll';
+      t.innerHTML='<div class="hd"><span class="dot"></span><b>kOS poll</b><time>'+hdr()+'</time><button class="x" aria-label="Dismiss">&#10005;</button></div>'+
+        '<div class="q"></div>'+
+        '<div class="ntf-opts"><button class="ntf-vote yes" type="button">Yes</button><button class="ntf-vote no" type="button">No</button></div>'+
+        '<div class="ntf-res" hidden>'+
+          '<div class="pollrow yes"><span>Yes</span><span class="track"><span class="fill"></span></span><span class="pct">0%</span></div>'+
+          '<div class="pollrow no"><span>No</span><span class="track"><span class="fill"></span></span><span class="pct">0%</span></div>'+
+        '</div>'+
+        '<div class="foot"><span class="cd">30s left</span><span class="tot">0 votes</span></div>';
+      t.querySelector('.q').textContent=q;
+      wrap.appendChild(t);requestAnimationFrame(function(){t.classList.add('in')});
+      var opts=t.querySelector('.ntf-opts'),res=t.querySelector('.ntf-res'),
+          yf=t.querySelector('.pollrow.yes .fill'),nf=t.querySelector('.pollrow.no .fill'),
+          yp=t.querySelector('.pollrow.yes .pct'),np=t.querySelector('.pollrow.no .pct'),
+          cd=t.querySelector('.cd'),tot=t.querySelector('.tot');
+      var closed=false,pollT=null,tick=null;
+      function remove(){t.classList.remove('in');t.classList.add('out');setTimeout(function(){t.remove()},500);if(pollT)clearInterval(pollT);if(tick)clearInterval(tick)}
+      t.querySelector('.x').addEventListener('click',remove);
+      function paint(c){var y=c.yes||0,n=c.no||0,s=y+n||1;yf.style.width=Math.round(y/s*100)+'%';nf.style.width=Math.round(n/s*100)+'%';
+        yp.textContent=Math.round(y/s*100)+'%';np.textContent=Math.round(n/s*100)+'%';tot.textContent=(y+n)+(y+n===1?' vote':' votes')}
+      function refresh(){getTally(id).then(paint)}
+      var already=null;try{already=localStorage.getItem('kos-pollv-'+id)}catch(e){}
+      function toResults(){opts.hidden=true;res.hidden=false;refresh()}
+      function vote(choice){if(already)return;already=choice;try{localStorage.setItem('kos-pollv-'+id,choice)}catch(e){}castVote(id,choice).then(refresh);toResults()}
+      t.querySelector('.ntf-vote.yes').addEventListener('click',function(){vote('yes')});
+      t.querySelector('.ntf-vote.no').addEventListener('click',function(){vote('no')});
+      if(already)toResults();
+      refresh();pollT=setInterval(refresh,2500);
+      var start=Date.now();
+      tick=setInterval(function(){
+        var left=Math.max(0,DURATION-(Date.now()-start));
+        cd.textContent=closed?'poll closed':Math.ceil(left/1000)+'s left';
+        if(left<=0&&!closed){closed=true;clearInterval(pollT);pollT=null;opts.hidden=true;res.hidden=false;cd.textContent='poll closed';refresh();setTimeout(remove,7000)}
+      },250);
+    }
     function check(){
       pull('notify.txt',etag).then(function(res){
         if(!res||res.same)return;                 // 304 / unchanged
         var t=(''+(res.text||'')).trim();if(!t)return;
-        if(t===seen)return;                        // already shown this exact message
+        if(t===seen)return;                        // already handled this exact message
         var first=seen===null;seen=t;try{localStorage.setItem('kos-ntf-seen',t)}catch(e){}
-        setTimeout(function(){show(t)},first?1600:0);  // let a fresh page settle before the first pop
+        var delay=first?1600:0;
+        if(POLL_RE.test(t)){var q=t.replace(POLL_RE,'').trim();if(q)setTimeout(function(){showPoll(q,pollId(q))},delay);}
+        else setTimeout(function(){show(t)},delay);
       }).catch(function(){});
     }
     check();setInterval(check,15000);
