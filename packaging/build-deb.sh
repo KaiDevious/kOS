@@ -11,7 +11,7 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.0.5"
+VERSION="1.0.6"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
@@ -26,6 +26,9 @@ trap 'rm -rf "$T"' EXIT
 dpkg-deb -R "$TEMPLATE" "$T"           # unpack current package (images, DEBIAN/) as the base
 sed -i "s/^Version:.*/Version: ${VERSION}/" "$T/DEBIAN/control"   # bump version
 sed -i 's/sudo kos-setup/sudo kos setup/g' "$T/DEBIAN/postinst" 2>/dev/null || true
+# GUI app runtime deps (idempotent)
+grep -q 'gir1.2-gtk-4.0' "$T/DEBIAN/control" || \
+  sed -i 's/^Depends: \(.*\)/Depends: \1, python3-gi, gir1.2-gtk-4.0, gir1.2-adw-1/' "$T/DEBIAN/control"
 
 # --- refresh the parts that are maintained in the repo ---
 install -D -m755 "$REPO/scripts/kos-setup.sh"      "$T/usr/bin/kos-setup"
@@ -40,6 +43,14 @@ done
 if [ -d "$REPO/branding/grub-theme" ]; then
   mkdir -p "$T/usr/share/kos/grub-theme"
   cp "$REPO/branding/grub-theme/"* "$T/usr/share/kos/grub-theme/"
+fi
+
+# kOS Control Center — native GTK app, shipped with the OS (menu entry + icon)
+if [ -f "$REPO/app/control-center/main.py" ]; then
+  install -D -m755 "$REPO/app/control-center/main.py" "$T/usr/bin/kos-control-center"
+  install -D -m644 "$REPO/app/control-center/io.github.kaidevious.kOS.desktop" "$T/usr/share/applications/io.github.kaidevious.kOS.desktop"
+  install -D -m644 "$REPO/app/control-center/logo.png" "$T/usr/share/kos/kos-logo.png"
+  install -D -m644 "$REPO/app/control-center/logo.png" "$T/usr/share/icons/hicolor/256x256/apps/io.github.kaidevious.kOS.png"
 fi
 
 # config-driven notifier: fresh GitHub API (ETag-conditional) + raw fallback + poll handling

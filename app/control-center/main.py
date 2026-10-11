@@ -12,7 +12,18 @@ APP_ID = "io.github.kaidevious.kOS"
 VERSION = "1.0.0"
 SITE = "https://kaidevious.github.io/kOS/"
 REPO = "https://github.com/KaiDevious/kOS"
-LOGO = "/app/share/kos/logo.png"
+LOGO_CANDIDATES = [
+    "/app/share/kos/logo.png",                                      # flatpak
+    "/usr/share/kos/kos-logo.png",                                  # native .deb
+    "/usr/share/icons/hicolor/256x256/apps/io.github.kaidevious.kOS.png",
+]
+
+
+def find_logo():
+    for p in LOGO_CANDIDATES:
+        if os.path.exists(p):
+            return p
+    return None
 
 THEMES = [
     ("Lamplight", "lamplight", "Warm, lamplit"),
@@ -60,8 +71,9 @@ class Window(Adw.ApplicationWindow):
         clamp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14,
                         margin_top=28, margin_bottom=28, halign=Gtk.Align.CENTER)
 
-        if os.path.exists(LOGO):
-            img = Gtk.Image.new_from_file(LOGO)
+        logo = find_logo()
+        if logo:
+            img = Gtk.Image.new_from_file(logo)
             img.set_pixel_size(96)
             clamp.append(img)
 
