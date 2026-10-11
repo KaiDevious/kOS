@@ -82,6 +82,9 @@ echo "kOS theme applied: ${1}"
 EOF0
 chmod 755 /usr/local/bin/kos-theme
 
+# umbrella 'kos' command (so 'sudo kos setup', 'kos theme ...' work)
+[ -f "$HERE/kos" ] && install -D -m755 "$HERE/kos" /usr/local/bin/kos
+
 say "5/8  Login screen background (SDDM)"
 if [ -d /usr/share/sddm/themes/breeze ]; then
   rm -rf /usr/share/sddm/themes/kos
@@ -248,10 +251,10 @@ apt-get install -y kimageformat-plugins >/dev/null 2>&1 || apt-get install -y ki
 echo
 echo "============================================================"
 echo " kOS system setup done. Pick a desktop look with one command:"
-echo "   kos-theme lamplight     # warm, lamplit"
-echo "   kos-theme liquidglass   # cool frosted gray"
-echo "   kos-theme dark          # kOS dark (Breeze Dark)"
-echo "   kos-theme light         # kOS light (Breeze Light)"
+echo "   kos theme lamplight     # warm, lamplit"
+echo "   kos theme liquidglass   # cool frosted gray"
+echo "   kos theme dark          # kOS dark (Breeze Dark)"
+echo "   kos theme light         # kOS light (Breeze Light)"
 echo
 echo " (or set them by hand in System Settings > Colors & Themes —"
 echo "  the schemes are listed as 'kOS Lamplight' and 'kOS Liquid Glass')"

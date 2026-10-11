@@ -5,10 +5,10 @@ Codename: kos
 Architectures: all
 Components: main
 Description: kOS desktop suite apt repository
-Date: Sun, 11 Oct 2026 21:32:11 GMT
+Date: Sun, 11 Oct 2026 21:40:08 GMT
 MD5Sum:
- 85dc164452fd56b0f8a9b786c69d1f85              735 Packages
- b8c36c7232abc210d74a3620dca31ab9              528 Packages.gz
+ d7166ce2cc9c9f224af05cb1a2771431              735 Packages
+ e4a82eb2627375ecd5562718d26bb48b              530 Packages.gz
 SHA256:
- cd044cfc7d38131b3e339c2d06be0313ff741b6a355424bf8d344e9b7904360f              735 Packages
- 821c9a3bb2364c6d6e5975191011a803bb44ad6ae2e8cbc063ee598362fa973c              528 Packages.gz
+ 35c6f575f432a504b4842559d4d09c8c5b2a2b7e694a08a999b3e1fb8142f99b              735 Packages
+ 537296bfe09512856706fd82c82928503babd7a499dfe3454f775a5529841f0f              530 Packages.gz
