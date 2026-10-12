@@ -10,9 +10,9 @@ message-bg-color: "#00000000"
     top = 60%
     width = 40%
     height = 26%
-    item_height = 30
-    item_padding = 8
-    item_spacing = 6
+    item_height = 24
+    item_padding = 2
+    item_spacing = 4
     item_color = "#c3c9d4"
     selected_item_color = "#ffffff"
     selected_item_pixmap_style = "select_*.png"
