@@ -201,35 +201,20 @@ grep -q '^GRUB_TIMEOUT_STYLE' /etc/default/grub && sed -i 's/^GRUB_TIMEOUT_STYLE
 sed -i '/^#\?GRUB_TIMEOUT=/d; /^GRUB_RECORDFAIL_TIMEOUT=/d' /etc/default/grub
 printf 'GRUB_TIMEOUT=3\nGRUB_RECORDFAIL_TIMEOUT=3\n' >> /etc/default/grub
 grep -q 'splash' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 splash"/' /etc/default/grub
-# Install the custom kOS GRUB theme (own layout, blue selection highlight,
-# countdown bar). This replaces Kali's theme, which otherwise overrides our
-# background and uses Kali's look.
-KT=/boot/grub/themes/kos
-if [ -d "$ASSETS/grub-theme" ]; then
-  rm -rf "$KT"; mkdir -p "$KT"
-  cp "$ASSETS/grub-theme/"* "$KT/" 2>/dev/null || true
-  cp /usr/share/kos/grub-bg.png "$KT/background.png" 2>/dev/null || true
-  # NOTE: do NOT set a custom GRUB_FONT. update-grub wires GRUB_FONT into the
-  # gfxmode gate (`if loadfont ...`); a custom .pf2 that fails to load there
-  # drops GRUB to text mode and the whole theme disappears. Use the stock font.
-  sed -i '/^GRUB_FONT=/d' /etc/default/grub 2>/dev/null || true
-  rm -f "$KT/kos.pf2"
-  # point GRUB at the kOS theme (override any Kali theme set in grub.d)
-  grep -q '^GRUB_THEME=' /etc/default/grub \
-    && sed -i "s|^GRUB_THEME=.*|GRUB_THEME=$KT/theme.txt|" /etc/default/grub \
-    || echo "GRUB_THEME=$KT/theme.txt" >> /etc/default/grub
-  mkdir -p /etc/default/grub.d
-  printf 'GRUB_THEME=%s/theme.txt\n' "$KT" > /etc/default/grub.d/zz-kos-theme.cfg
-else
-  # fallback: no theme shipped — swap the kali theme's background image
-  if [ -f /usr/share/kos/grub-bg.png ]; then
-    for TD in /boot/grub/themes/kali /usr/share/grub/themes/kali; do
-      [ -d "$TD" ] || continue
-      IMG=$(grep -oP 'desktop-image:\s*"?\K[^"]+' "$TD/theme.txt" 2>/dev/null | head -1)
-      [ -n "$IMG" ] || IMG=background.png
-      cp /usr/share/kos/grub-bg.png "$TD/$IMG" 2>/dev/null || true
-    done
-  fi
+# GRUB: keep Kali's stock font + selection highlight (reliable — a full custom
+# gfxmenu theme made some VM graphics drivers triple-fault when Enter was
+# pressed). We only swap in the kOS background and the "kOS" title text.
+# Tear down any custom kOS theme/font from earlier versions first.
+rm -rf /boot/grub/themes/kos
+rm -f /etc/default/grub.d/zz-kos-theme.cfg
+sed -i '/^GRUB_FONT=/d; /^GRUB_THEME=/d' /etc/default/grub 2>/dev/null || true
+if [ -f /usr/share/kos/grub-bg.png ]; then
+  for TD in /boot/grub/themes/kali /usr/share/grub/themes/kali; do
+    [ -d "$TD" ] || continue
+    IMG=$(grep -oP 'desktop-image:\s*"?\K[^"]+' "$TD/theme.txt" 2>/dev/null | head -1)
+    [ -n "$IMG" ] || IMG=background.png
+    cp /usr/share/kos/grub-bg.png "$TD/$IMG" 2>/dev/null || true
+  done
 fi
 update-grub >/dev/null 2>&1 || true
 
