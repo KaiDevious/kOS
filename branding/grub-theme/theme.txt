@@ -1,48 +1,34 @@
 # kOS GRUB theme
 title-text: ""
 desktop-image: "background.png"
-desktop-image-scale-method: "stretch"
 desktop-color: "#070708"
-message-color: "#b9c0cc"
-message-bg-color: "#070708"
-terminal-font: "kOS 20"
+message-color: "#8a90a0"
+message-bg-color: "#00000000"
 
 + boot_menu {
-    left = 25%
-    top = 50%
-    width = 50%
-    height = 34%
-    item_font = "kOS 20"
-    item_color = "#b9c0cc"
+    left = 30%
+    top = 60%
+    width = 40%
+    height = 26%
+    item_height = 30
+    item_padding = 8
+    item_spacing = 6
+    item_color = "#c3c9d4"
     selected_item_color = "#ffffff"
-    item_height = 44
-    item_padding = 18
-    item_spacing = 10
     selected_item_pixmap_style = "select_*.png"
     scrollbar = false
 }
 
 + progress_bar {
     id = "__timeout__"
-    left = 25%
-    top = 87%
-    width = 50%
-    height = 14
+    left = 30%
+    top = 90%
+    width = 40%
+    height = 12
     show_text = true
-    font = "kOS 20"
-    text_color = "#9aa0ab"
+    text_color = "#8a90a0"
     fg_color = "#4a86f0"
     bg_color = "#161a21"
     border_color = "#2c3139"
     text = "Booting in %d s"
-}
-
-+ label {
-    top = 93%
-    left = 0
-    width = 100%
-    align = "center"
-    color = "#525a66"
-    font = "kOS 20"
-    text = "↑ ↓ to choose   ·   Enter to boot"
 }

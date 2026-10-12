@@ -209,22 +209,17 @@ if [ -d "$ASSETS/grub-theme" ]; then
   rm -rf "$KT"; mkdir -p "$KT"
   cp "$ASSETS/grub-theme/"* "$KT/" 2>/dev/null || true
   cp /usr/share/kos/grub-bg.png "$KT/background.png" 2>/dev/null || true
-  # build the kOS boot font with grub-mkfont (ships with grub); fall back quietly
-  if command -v grub-mkfont >/dev/null 2>&1; then
-    TTF=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
-    [ -f "$TTF" ] || TTF=$(fc-match -f '%{file}' 'DejaVu Sans' 2>/dev/null)
-    [ -f "$TTF" ] && grub-mkfont -s 20 -n "kOS 20" -o "$KT/kos.pf2" "$TTF" 2>/dev/null || true
-  fi
-  [ -f "$KT/kos.pf2" ] && { grep -q '^GRUB_FONT=' /etc/default/grub \
-      && sed -i "s|^GRUB_FONT=.*|GRUB_FONT=$KT/kos.pf2|" /etc/default/grub \
-      || echo "GRUB_FONT=$KT/kos.pf2" >> /etc/default/grub; }
+  # NOTE: do NOT set a custom GRUB_FONT. update-grub wires GRUB_FONT into the
+  # gfxmode gate (`if loadfont ...`); a custom .pf2 that fails to load there
+  # drops GRUB to text mode and the whole theme disappears. Use the stock font.
+  sed -i '/^GRUB_FONT=/d' /etc/default/grub 2>/dev/null || true
+  rm -f "$KT/kos.pf2"
   # point GRUB at the kOS theme (override any Kali theme set in grub.d)
   grep -q '^GRUB_THEME=' /etc/default/grub \
     && sed -i "s|^GRUB_THEME=.*|GRUB_THEME=$KT/theme.txt|" /etc/default/grub \
     || echo "GRUB_THEME=$KT/theme.txt" >> /etc/default/grub
   mkdir -p /etc/default/grub.d
   printf 'GRUB_THEME=%s/theme.txt\n' "$KT" > /etc/default/grub.d/zz-kos-theme.cfg
-  [ -f "$KT/kos.pf2" ] && printf 'GRUB_FONT=%s/kos.pf2\n' "$KT" >> /etc/default/grub.d/zz-kos-theme.cfg
 else
   # fallback: no theme shipped — swap the kali theme's background image
   if [ -f /usr/share/kos/grub-bg.png ]; then
