@@ -37,6 +37,13 @@ cd "$APT"
 dpkg-scanpackages --multiversion . > Packages
 gzip -9 -kf Packages
 
+# machine-readable "latest" marker — the Control Center's update check reads this
+# (no sudo / apt update needed just to see if a newer build exists)
+LATEST_DEB="$(ls -1 kos-desktop_*.deb | sort -V | tail -1)"
+LVER="$(dpkg-deb -f "$LATEST_DEB" Version)"
+LCODE="$(dpkg-deb --fsys-tarfile "$LATEST_DEB" | tar -xO ./usr/share/kos/codename 2>/dev/null | tr -d '[:space:]')"
+printf '{"version":"%s","codename":"%s"}\n' "$LVER" "$LCODE" > kos-latest.json
+
 cat > Release <<EOF
 Origin: kOS
 Label: kOS

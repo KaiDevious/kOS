@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """kOS Control Center — the hub for themes, tweaks, and system info."""
 import os
+import json
+import threading
 import subprocess
+import urllib.request
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -12,6 +15,7 @@ APP_ID = "io.github.kaidevious.kOS"
 VERSION = "1.3"
 SITE = "https://kaidevious.github.io/kOS/"
 REPO = "https://github.com/KaiDevious/kOS"
+LATEST_URL = "https://kaidevious.github.io/kOS/apt/kos-latest.json"
 LOGO_CANDIDATES = [
     "/app/share/kos/logo.png",
     "/usr/share/kos/kos-logo.png",
@@ -272,18 +276,20 @@ class Window(Adw.ApplicationWindow):
         page.add(info)
 
         upd = Adw.PreferencesGroup(title="Updates")
-        r1 = Adw.ActionRow(title="Check for updates", subtitle="Look for a newer kOS")
-        b1 = Gtk.Button(label="Check", valign=Gtk.Align.CENTER)
-        b1.add_css_class("flat")
-        b1.connect("clicked", lambda *_: (run_host(["kos-updatecheck"]), self._toast("Checking for updates…")))
-        r1.add_suffix(b1)
-        upd.add(r1)
+        self.check_row = Adw.ActionRow(title="Check for updates", subtitle="Look for a newer kOS")
+        self.check_spin = Gtk.Spinner(valign=Gtk.Align.CENTER)
+        self.check_spin.set_visible(False)
+        self.check_row.add_suffix(self.check_spin)
+        self.check_btn = Gtk.Button(label="Check", valign=Gtk.Align.CENTER)
+        self.check_btn.add_css_class("flat")
+        self.check_btn.connect("clicked", self._check_updates)
+        self.check_row.add_suffix(self.check_btn)
+        upd.add(self.check_row)
         r2 = Adw.ActionRow(title="Update kOS", subtitle="Opens a terminal to install the latest")
-        b2 = Gtk.Button(label="Update", valign=Gtk.Align.CENTER)
-        b2.add_css_class("flat")
-        b2.add_css_class("suggested-action")
-        b2.connect("clicked", lambda *_: run_host(["konsole", "-e", "bash", "-c", "kos update; echo; read -p 'Press Enter to close…'"]))
-        r2.add_suffix(b2)
+        self.update_btn = Gtk.Button(label="Update", valign=Gtk.Align.CENTER)
+        self.update_btn.add_css_class("flat")
+        self.update_btn.connect("clicked", lambda *_: run_host(["konsole", "-e", "bash", "-c", "kos update; echo; read -p 'Press Enter to close…'"]))
+        r2.add_suffix(self.update_btn)
         upd.add(r2)
         page.add(upd)
 
@@ -299,6 +305,49 @@ class Window(Adw.ApplicationWindow):
             links.add(row)
         page.add(links)
         return page
+
+    # --- update check (spinner, then verdict) ---
+    def _check_updates(self, _button):
+        self.check_btn.set_sensitive(False)
+        self.check_spin.set_visible(True)
+        self.check_spin.start()
+        self.check_row.set_subtitle("Checking…")
+        threading.Thread(target=self._check_worker, daemon=True).start()
+
+    def _check_worker(self):
+        res = {"ok": False}
+        try:
+            req = urllib.request.Request(LATEST_URL, headers={"User-Agent": "kOS"})
+            with urllib.request.urlopen(req, timeout=8) as r:
+                data = json.load(r)
+            rv = str(data.get("version", "")).strip()
+            rc = str(data.get("codename", "")).strip()
+            inst = kos_info()[0] or "0"
+            try:
+                newer = subprocess.call(
+                    ["dpkg", "--compare-versions", rv, "gt", inst],
+                    stderr=subprocess.DEVNULL) == 0
+            except Exception:
+                newer = bool(rv) and rv != inst
+            res = {"ok": True, "newer": newer, "rv": rv, "rc": rc}
+        except Exception:
+            res = {"ok": False}
+        GLib.idle_add(self._check_done, res)
+
+    def _check_done(self, res):
+        self.check_spin.stop()
+        self.check_spin.set_visible(False)
+        self.check_btn.set_sensitive(True)
+        if not res.get("ok"):
+            self.check_row.set_subtitle("Couldn't check — are you online?")
+        elif res.get("newer"):
+            rc, rv = res.get("rc"), res.get("rv")
+            tag = (f'kOS "{rc}" {rv}' if rc else f"kOS {rv}")
+            self.check_row.set_subtitle(f"Click Update to go to {tag}")
+            self.update_btn.add_css_class("suggested-action")
+        else:
+            self.check_row.set_subtitle("No updates available.")
+        return False
 
     def _open(self, uri):
         Gtk.UriLauncher(uri=uri).launch(self, None, None)
