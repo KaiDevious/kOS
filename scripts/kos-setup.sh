@@ -514,13 +514,22 @@ cat > /usr/bin/kos-updatecheck <<'EOF'
 #!/bin/bash
 # notify if a newer kOS is in the repo
 inst=$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null) || exit 0
-repo=$(curl -fsS --max-time 8 "https://kaidevious.github.io/kOS/apt/Packages?t=$(date +%s)" 2>/dev/null \
-        | awk '/^Package: kos-desktop/{f=1} f&&/^Version:/{print $2; exit}')
+# kos-latest.json carries both version AND codename
+latest=$(curl -fsS --max-time 8 "https://kaidevious.github.io/kOS/apt/kos-latest.json?t=$(date +%s)" 2>/dev/null)
+repo=$(printf '%s' "$latest" | grep -o '"version"[^,}]*' | cut -d'"' -f4)
+code=$(printf '%s' "$latest" | grep -o '"codename"[^,}]*' | cut -d'"' -f4)
+# fall back to the Packages index if the json isn't reachable
+if [ -z "$repo" ]; then
+  repo=$(curl -fsS --max-time 8 "https://kaidevious.github.io/kOS/apt/Packages?t=$(date +%s)" 2>/dev/null \
+          | awk '/^Package: kos-desktop/{f=1} f&&/^Version:/{print $2; exit}')
+fi
 [ -n "$repo" ] || exit 0
 if dpkg --compare-versions "$repo" gt "$inst"; then
+  name="kOS"; [ -n "$code" ] && name="kOS \"$code\""
   command -v notify-send >/dev/null 2>&1 && \
     notify-send -a kOS -i io.github.kaidevious.kOS "kOS update available" \
-      "Version $repo is out (you have $inst). Update with:  kos update"
+      "$name $repo is out (you have $inst).
+Update with Control Center or:  kos update"
 fi
 EOF
 chmod 755 /usr/bin/kos-updatecheck
