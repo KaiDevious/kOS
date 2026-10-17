@@ -12,10 +12,18 @@ A custom Linux distribution built on **Kali** with the **KDE Plasma** desktop. I
 - **Works with Apple files.** Opens iPhone photos (HEIC) and common Mac file types.
 - **Has security tools built in.** The Kali tool set (nmap, Wireshark, Burp, Ghidra, and more).
 - **Can send announcements.** A built-in message-of-the-day and pop-up notifications, controlled from one place. ([how it works](https://github.com/KaiDevious/kos-motd-notif-sender))
-- **Four desktop themes.** **Lamplight** (warm, lamplit) and **Liquid Glass** (cool frosted gray), plus classic **Dark** and **Light** — each with a matching wallpaper. Switch live with `kos theme <name>`.
-- **First-boot welcome.** A one-time **kOS Welcome** wizard on first login — greets you and lets you pick your theme in a couple of clicks.
+- **Four desktop themes.** Switch any of them live with `kos theme <name>` or from the Control Center, each with its own matching wallpaper:
+  - **Lamplight** — warm, lamplit amber
+  - **Liquid Glass** — cool frosted gray
+  - **Dark** — classic kOS dark
+  - **Light** — clean kOS light
+  - *(the [kOS website](https://kaidevious.github.io/kOS/) also carries a fifth look, **Limbus** — engraved gold on black — as a web-only theme)*
+- **First-boot welcome.** A one-time **kOS Welcome** wizard on first login — picks your name, theme, accent color, wallpaper, and a few behavior options in a couple of clicks.
 - **Its own control panel.** The **kOS Control Center** app — a welcome hub and one-click theme switcher, in your app menu.
-- **Looks custom all the way down.** Custom wallpaper, boot screen (GRUB), login screen, and terminal logo.
+- **No Kali leftovers.** The app launcher, favorites, and browser bookmarks are all kOS — the Kali web links and branding are swapped out, the security tools stay.
+- **Signed, self-updating package.** The apt repo is GPG-signed, so `apt upgrade` pulls verified kOS updates like any other package.
+- **Looks custom all the way down.** Custom wallpaper, GRUB boot menu, boot splash, Plasma splash, login screen, and terminal logo.
+- **Optional diagnostics.** An opt-in report in the Welcome wizard sends non-personal system info (version, hardware, VM/not) to the developer — off by default.
 - **Small quality-of-life fixes.** No system beep, reliable networking, and a colored terminal.
 
 ## Screenshots
@@ -88,6 +96,7 @@ Two more VirtualBox speedups worth setting (VM powered off): **Storage → SATA 
 - **List what's available:** `kos themes`
 - **See the command:** `kos help`
 - **Open the control panel:** launch **kOS Control Center** from your app menu.
+- **Re-run the welcome wizard:** `kos-oobe --force`
 
 ## What's in this repo
 
