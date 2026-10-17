@@ -270,8 +270,12 @@ read -r -d '' KOS_FFPOLICY <<'JSON' || true
   "policies": {
     "NoDefaultBookmarks": true,
     "Bookmarks": [
-      { "Title": "kOS",           "URL": "https://kaidevious.github.io/kOS/",  "Placement": "toolbar" },
-      { "Title": "kOS on GitHub", "URL": "https://github.com/KaiDevious/kOS",   "Placement": "toolbar" }
+      { "Title": "kOS",          "URL": "https://kaidevious.github.io/kOS/",                 "Placement": "toolbar", "Folder": "kOS Links" },
+      { "Title": "kOS GitHub",   "URL": "https://github.com/KaiDevious/kOS",                 "Placement": "toolbar", "Folder": "kOS Links" },
+      { "Title": "kOS Docs",     "URL": "https://github.com/KaiDevious/kOS#readme",          "Placement": "toolbar", "Folder": "kOS Links" },
+      { "Title": "kOS Bugs",     "URL": "https://github.com/KaiDevious/kOS/issues",          "Placement": "toolbar", "Folder": "kOS Links" },
+      { "Title": "kOS Notifier", "URL": "https://github.com/KaiDevious/kos-motd-notif-sender","Placement": "toolbar", "Folder": "kOS Links" },
+      { "Title": "My GitHub",    "URL": "https://github.com/KaiDevious",                     "Placement": "toolbar", "Folder": "kOS Links" }
     ]
   }
 }
