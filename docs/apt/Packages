@@ -1,14 +1,14 @@
 Package: kos-desktop
-Version: 1.3.0
+Version: 1.2.9
 Architecture: all
 Maintainer: KaiDevious
 Depends: curl, libnotify-bin, python3-gi, gir1.2-gtk-4.0, gir1.2-adw-1
 Recommends: fastfetch, zsh, zsh-syntax-highlighting, zsh-autosuggestions, papirus-icon-theme, plymouth, wine
-Filename: ./kos-desktop_1.3.0.deb
-Size: 1437496
-MD5sum: acb0ba0e85a28fc08582087914465a49
-SHA1: e84a942a313f619ffd63cc30105dd34dfb847e40
-SHA256: 71682a0930ac2ad1237dbfaf1df1cfa563b7820ac321248f6c5051a0cdb0e186
+Filename: ./kos-desktop_1.2.9.deb
+Size: 1437516
+MD5sum: 8836273f19ace0b827755a743eb7049f
+SHA1: 57255eefec87014ac7a13cfbb305194fb009d15d
+SHA256: 91e8c0dcbb2b2d73d4b837acca70b471c8a8fae5256139b4db4720fd273c4514
 Section: x11
 Priority: optional
 Description: The kOS desktop suite — branding, broadcaster, and setup
