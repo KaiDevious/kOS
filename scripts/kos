@@ -1,39 +1,79 @@
 #!/bin/bash
 # kOS — umbrella command. Dispatches to the kOS tools.
-#   sudo kos setup                 apply the full kOS look + system tweaks
-#   kos theme <name>               lamplight | liquidglass | dark | light
-#   kos themes                     list available themes
-#   kos version
 # report the real installed package version (falls back if dpkg can't say)
 VERSION="$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)"
-[ -n "$VERSION" ] || VERSION="1.2.4"
+[ -n "$VERSION" ] || VERSION="1.2.5"
+SITE="https://kaidevious.github.io/kOS/"
+REPO="https://github.com/KaiDevious/kOS"
 cmd="${1:-help}"; [ $# -gt 0 ] && shift
 
 case "$cmd" in
   setup)
     if command -v kos-setup >/dev/null 2>&1; then exec kos-setup "$@"
     else echo "kos: setup not installed (reinstall kos-desktop)"; exit 1; fi ;;
+
   theme)
     if command -v kos-theme >/dev/null 2>&1; then exec kos-theme "$@"
     else echo "kos: themes not installed yet — run 'sudo kos setup' first"; exit 1; fi ;;
+
   themes)
     echo "kOS themes:  lamplight  liquidglass  dark  light"
     echo "apply with:  kos theme <name>" ;;
+
+  welcome|oobe)
+    if command -v kos-oobe >/dev/null 2>&1; then exec kos-oobe --force
+    else echo "kos: welcome wizard not installed (reinstall kos-desktop)"; exit 1; fi ;;
+
+  center|control|cc)
+    if command -v kos-control-center >/dev/null 2>&1; then
+      exec env GSK_RENDERER=cairo kos-control-center "$@"
+    else echo "kos: Control Center not installed (reinstall kos-desktop)"; exit 1; fi ;;
+
+  update|upgrade)
+    echo "Updating kOS..."
+    sudo apt update && sudo apt install --only-upgrade -y kos-desktop
+    echo "Done. You're on kOS $(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)." ;;
+
+  site|web)      exec xdg-open "$SITE" ;;
+  github|repo)   exec xdg-open "$REPO" ;;
+  bugs|issues)   exec xdg-open "$REPO/issues" ;;
+
+  info|fetch)
+    if command -v fastfetch >/dev/null 2>&1; then exec fastfetch
+    else . /etc/os-release 2>/dev/null; echo "$PRETTY_NAME $(uname -m) — kernel $(uname -r)"; fi ;;
+
   version|-v|--version)
     echo "kOS $VERSION" ;;
+
   help|-h|--help)
     cat <<H
 kOS $VERSION — usage:
-  sudo kos setup            apply the full kOS look + system tweaks
-  kos theme <name>          switch desktop look live:
-                              lamplight    warm, lamplit
-                              liquidglass  cool frosted gray
-                              dark         kOS dark
-                              light        kOS light
-  kos themes                list the themes
-  kos version               show version
+
+  Setup & look
+    sudo kos setup            apply the full kOS look + system tweaks
+    kos theme <name>          switch desktop look live:
+                                lamplight    warm, lamplit
+                                liquidglass  cool frosted gray
+                                dark         kOS dark
+                                light        kOS light
+    kos themes                list the themes
+
+  Apps
+    kos welcome               re-run the first-boot welcome wizard
+    kos center                open the kOS Control Center
+
+  System
+    kos update                update kOS to the latest version
+    kos info                  show system info (fastfetch)
+    kos version               show version
+
+  Links
+    kos site                  open the kOS website
+    kos github                open the kOS repo
+    kos bugs                  open the issue tracker
 H
     ;;
+
   *)
     echo "kos: unknown command '$cmd'  (try: kos help)"; exit 1 ;;
 esac
