@@ -8,27 +8,27 @@ Codename: kos
 Architectures: all
 Components: main
 Description: kOS desktop suite apt repository
-Date: Sat, 17 Oct 2026 23:55:12 GMT
+Date: Sat, 17 Oct 2026 23:57:57 GMT
 MD5Sum:
- 35e915337a69838b89ea837b04a62a41              777 Packages
- cb5c0b22ea55c68c66f8dfa8af4469c9              554 Packages.gz
+ fd0ade188ed70f415c108b193b1887d4              777 Packages
+ 9e5910e397c646a0b2480fcc44b7388b              555 Packages.gz
 SHA256:
- 7b6e7f36f015d481ecb3b9996a7cff4b7aa22ae8eda16b07ab1e822babc205dd              777 Packages
- 6dfa634570da54c7c97c48923c0444006938e3965b2b383373a2d26842b8dfe6              554 Packages.gz
+ d956b1f23a47a10d6a01ccf8fd39df7ce04248cc88bab5ac1b0fd38dcf8be042              777 Packages
+ a53d0dbc889fe06c67702f297a82e67c516f34c9262b737f5917b4aff5afe721              555 Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iQJYBAEBCgBCFiEEViuyPXVJF/6lB9rKbpbqKTfLp5cFAmrUCuAkHGthaWRldmlv
-dXNAdXNlcnMubm9yZXBseS5naXRodWIuY29tAAoJEG6W6ik3y6eXQ0MP/3ryM+Dj
-8GXUoxtoIT0qeIBsPPaBcRPGGn6wsLLifycz37JqbTML8/sf/zy8OMuqbO1I3r9B
-rOj8hB+yh/YWTn4J1oZhKSd+K/Xg19HccIe4spz2QMbvQdFMwPtbashpT7/a8gtD
-CCsRF6i+flyV1fgMh/ofLOoaExo7NzaIORAwxDpKZYEsLiJj1bGJaSXoukVNdFWr
-JCWafY6v4mOjul/cWeSi8PopiCZFCHGjDKLROh9OR1Hi0t/ow6xCn+4MW2L3CB/X
-6gWeFF+yqNkqbC4tVwbOIiTNsKjusYMZ0m/6C/Xyjr9Iu8lMgcXgWe+vYxmZHPDM
-QWuUoomWf23cO8VU1bBYm8tOSsRu9X7huu8EEwIK7xORuA7Cy+jmwRMN+UBWjk27
-7USyfXXKbx7Lct0JtxP6jwKNDSfhh7lPAGrnH4GCfHy5nnfS3W2UNiyAzfTefHGA
-WdEK541ItFSzIply11QblDjR3tDExlcVBMzb6BaXwaOFQAUMxGISuVtBjJL8vcVO
-b5WxKJnX7tTCTtqMYywL4etvwRuup/Ozc4Gww/4rxGp9ccQfCATcWH2hBTuMUGlM
-hA/34owCbMMcCLImaIkcXq1GROySPJhHXf+tC/RHXwRadjDZj9Kv7CDCTPbfe+/1
-Xpb1Pgp8g8exXDw8Q6L3slKbMiuKDHcj3fTU
-=95By
+iQJYBAEBCgBCFiEEViuyPXVJF/6lB9rKbpbqKTfLp5cFAmrUC4UkHGthaWRldmlv
+dXNAdXNlcnMubm9yZXBseS5naXRodWIuY29tAAoJEG6W6ik3y6eX9b0P/0mgioKX
+DP0naOiXMQBVAPnGlhirXUz69tsUw8e+uRvvjxcsDF6/fV1QYB89pcnIzQm82dKZ
+zmDUHS4mQ1NokUiwwEqN5DMqemCzCK3Zyek7ONStRVmF2J30n8/3KLMiJRD8/Wwk
+N2E/p/DFb3Cxy6fy4INQCYF4mlNpiSFt5+T9b/DtBAMP/NCMmotjk01oSQxjaR5J
+Py5wPx/dN/FpjAfceZSIQWE5vQe6bJbZENNx8pXLavruGhuPtPzMQo9JpJSeO8P3
+2XOFS7H4IXHuLDkzbaa2Z2wBzuW150/7/arn2wEpJBnEUmui5D101HwbTaZKglf4
+iJMSHcBOq2mlWV0zs9XdgYxnQ2WwrKqJ4pgcM6m6E84m6IMj4W3ZmFRx2eskToZD
+P/+zgWCDa+0msSvoBsU+PfheHchAeCKDCrnHumO86eqVhYJWU9QveXR6X7UYmnJN
+VHabDPwzKFMmsxXS0G1v/pvwsjOwpn3zFQw91cXJ2oq3ptSTZ6TE7USQKTogZlEm
+6ZYrLsq8Tw2zBcuwxgykwdlOXefxn8QDGbCX8g+4wFZsHKPPQA1m+ooQG+pQmKs/
+0GoSoT/kcXgd9f1bNxF7g4DuRGNRs3cGq7Fq4Km75IQJ4464483PvjzZXCsX5mGW
+RWBOBAiFC4kWzFoYzGssLehld1G0Y/4IRpyD
+=6rN6
 -----END PGP SIGNATURE-----

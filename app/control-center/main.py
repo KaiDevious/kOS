@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """kOS Control Center — the hub for themes, tweaks, and system info."""
 import os
+import re
 import json
+import time
+import platform
+import hashlib
 import threading
 import subprocess
 import urllib.request
+from datetime import datetime
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -37,6 +42,90 @@ WALLPAPERS = [
 ACCENTS = [("Amber", "amber", "217,154,78"), ("Slate", "slate", "154,161,173"),
            ("Blue", "blue", "74,134,240"), ("Green", "green", "46,204,113"),
            ("Purple", "purple", "155,89,182"), ("Red", "red", "231,76,60")]
+
+DIAG_COOLDOWN = 300  # seconds between diagnostics sends
+DIAG_STATE = os.path.expanduser("~/.cache/kos/last-diag")
+
+
+def _read_file(path):
+    try:
+        with open(path) as f:
+            return f.read()
+    except Exception:
+        return ""
+
+
+def read_diag_url():
+    """Opt-in diagnostics endpoint from /etc/kos/config: DIAG_URL=..."""
+    for line in _read_file("/etc/kos/config").splitlines():
+        line = line.strip()
+        if line.startswith("DIAG_URL"):
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return ""
+
+
+def gather_diag(theme=None):
+    """Non-personal system info only — no files, usernames, or IPs."""
+    d = {}
+    d["kOS"] = kos_info()[0] or VERSION
+    mid = (_read_file("/etc/machine-id").strip()
+           or _read_file("/var/lib/dbus/machine-id").strip())
+    d["id"] = hashlib.sha256(mid.encode()).hexdigest()[:12] if mid else "unknown"
+    d["kernel"] = platform.release()
+    d["arch"] = platform.machine()
+    d["desktop"] = os.environ.get("XDG_CURRENT_DESKTOP", "")
+    ci = _read_file("/proc/cpuinfo")
+    m = re.search(r"model name\s*:\s*(.+)", ci)
+    d["cpu"] = (m.group(1).strip() if m else "unknown")
+    d["cores"] = str(ci.count("processor") or (os.cpu_count() or ""))
+    mm = re.search(r"MemTotal:\s*(\d+)", _read_file("/proc/meminfo"))
+    d["ram"] = (str(round(int(mm.group(1)) / 1048576, 1)) + " GB" if mm else "unknown")
+    up = _read_file("/proc/uptime").split()
+    if up:
+        s = int(float(up[0]))
+        d["uptime"] = "%dh %dm" % (s // 3600, (s % 3600) // 60)
+    try:
+        lp = subprocess.check_output(["sh", "-c", "lspci | grep -i vga"],
+                                     text=True, stderr=subprocess.DEVNULL).strip()
+        d["gpu"] = lp.split(":")[-1].strip() if lp else "unknown"
+    except Exception:
+        d["gpu"] = "unknown"
+    try:
+        d["virt"] = subprocess.check_output(["systemd-detect-virt"],
+                                            text=True, stderr=subprocess.DEVNULL).strip()
+    except Exception:
+        d["virt"] = "unknown"
+    d["locale"] = os.environ.get("LANG", "")
+    if theme:
+        d["theme"] = theme
+    d["time"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    return d
+
+
+def send_diag(url, data, cb):
+    """POST a Discord-webhook-style JSON message off the UI thread."""
+    def work():
+        ok, msg = False, ""
+        try:
+            lines = "\n".join("%-9s %s" % (k + ":", v) for k, v in data.items())
+            payload = json.dumps(
+                {"content": "**kOS diagnostics**\n```\n" + lines + "\n```"}).encode()
+            req = urllib.request.Request(
+                url, data=payload,
+                headers={"Content-Type": "application/json", "User-Agent": "kOS"})
+            urllib.request.urlopen(req, timeout=10)
+            ok = True
+        except Exception as e:
+            msg = str(e)
+        GLib.idle_add(cb, ok, msg)
+    threading.Thread(target=work, daemon=True).start()
+
+
+def _diag_last():
+    try:
+        return float(_read_file(DIAG_STATE).strip() or 0)
+    except Exception:
+        return 0.0
 
 
 def find_logo():
@@ -82,6 +171,7 @@ class Window(Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title="kOS Control Center")
         self.set_default_size(600, 700)
+        self._diag_timer = None
 
         self.toasts = Adw.ToastOverlay()
         self.set_content(self.toasts)
@@ -152,7 +242,21 @@ class Window(Adw.ApplicationWindow):
             row.add_suffix(btn)
             row.set_activatable_widget(btn)
             actions.add(row)
+
+        self.diag_row = Adw.ActionRow(
+            title="Send diagnostics",
+            subtitle="Share non-personal system info with the developer")
+        self.diag_btn = Gtk.Button(label="Send", valign=Gtk.Align.CENTER)
+        self.diag_btn.add_css_class("flat")
+        self.diag_btn.connect("clicked", self._send_diag)
+        self.diag_row.add_suffix(self.diag_btn)
+        self.diag_row.set_activatable_widget(self.diag_btn)
+        actions.add(self.diag_row)
+
         page.add(actions)
+        # honor a cooldown that's still running from a previous send
+        if time.time() - _diag_last() < DIAG_COOLDOWN:
+            self._start_cooldown()
         return page
 
     # --- Themes ---
@@ -348,6 +452,52 @@ class Window(Adw.ApplicationWindow):
         else:
             self.check_row.set_subtitle("No updates available.")
         return False
+
+    # --- send diagnostics (with a 5-minute cooldown) ---
+    def _send_diag(self, _b):
+        url = read_diag_url()
+        if not url:
+            self._toast("Diagnostics isn't set up on this system")
+            return
+        if time.time() - _diag_last() < DIAG_COOLDOWN:
+            self._start_cooldown()
+            return
+        self.diag_btn.set_sensitive(False)
+        self.diag_btn.set_label("Sending…")
+        theme = _read_file(os.path.expanduser("~/.cache/kos/theme")).strip() or None
+        send_diag(url, gather_diag(theme), self._diag_sent)
+
+    def _diag_sent(self, ok, _msg):
+        if ok:
+            self._toast("Diagnostics sent — thanks!")
+            try:
+                os.makedirs(os.path.dirname(DIAG_STATE), exist_ok=True)
+                with open(DIAG_STATE, "w") as f:
+                    f.write(str(time.time()))
+            except Exception:
+                pass
+            self._start_cooldown()
+        else:
+            self._toast("Couldn't send diagnostics — are you online?")
+            self.diag_btn.set_sensitive(True)
+            self.diag_btn.set_label("Send")
+        return False
+
+    def _start_cooldown(self):
+        if self._diag_timer is None:
+            self._diag_timer = GLib.timeout_add_seconds(1, self._tick_cooldown)
+        self._tick_cooldown()
+
+    def _tick_cooldown(self):
+        remain = int(DIAG_COOLDOWN - (time.time() - _diag_last()))
+        if remain <= 0:
+            self.diag_btn.set_label("Send")
+            self.diag_btn.set_sensitive(True)
+            self._diag_timer = None
+            return False
+        self.diag_btn.set_sensitive(False)
+        self.diag_btn.set_label("Wait %d:%02d" % (remain // 60, remain % 60))
+        return True
 
     def _open(self, uri):
         Gtk.UriLauncher(uri=uri).launch(self, None, None)
