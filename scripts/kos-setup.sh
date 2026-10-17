@@ -322,6 +322,15 @@ for F in /etc/xdg/ksplashrc "$UH/.config/ksplashrc"; do
 done
 chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$UH/.config/ksplashrc" 2>/dev/null || true
 
+say "Disable the stock KDE welcome tour (kOS has its own)"
+# kOS ships its own Welcome wizard (kos-oobe); suppress Plasma's so they don't collide
+mkdir -p "$UH/.config/autostart"
+for W in /etc/xdg/autostart/*welcome*.desktop; do
+  [ -f "$W" ] || continue
+  printf '[Desktop Entry]\nHidden=true\n' > "$UH/.config/autostart/$(basename "$W")"
+done
+chown -R "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$UH/.config/autostart" 2>/dev/null || true
+
 say "Apps: Windows (Wine) + Apple file support"
 dpkg --add-architecture i386 >/dev/null 2>&1 || true
 apt-get update >/dev/null 2>&1 || true
