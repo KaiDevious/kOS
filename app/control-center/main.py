@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""kOS Control Center — welcome hub + desktop theme switcher."""
+"""kOS Control Center — the hub for themes, tweaks, and system info."""
 import os
 import subprocess
 import gi
@@ -9,14 +9,30 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, Gio, GLib  # noqa: E402
 
 APP_ID = "io.github.kaidevious.kOS"
-VERSION = "1.0.0"
+VERSION = "1.3"
 SITE = "https://kaidevious.github.io/kOS/"
 REPO = "https://github.com/KaiDevious/kOS"
 LOGO_CANDIDATES = [
-    "/app/share/kos/logo.png",                                      # flatpak
-    "/usr/share/kos/kos-logo.png",                                  # native .deb
+    "/app/share/kos/logo.png",
+    "/usr/share/kos/kos-logo.png",
     "/usr/share/icons/hicolor/256x256/apps/io.github.kaidevious.kOS.png",
 ]
+
+THEMES = [
+    ("Lamplight", "lamplight", "Warm, lamplit amber"),
+    ("Liquid Glass", "liquidglass", "Cool frosted gray"),
+    ("Dark", "dark", "Classic kOS dark"),
+    ("Light", "light", "Clean kOS light"),
+]
+WALLPAPERS = [
+    ("Lamplight", "lamplight", "Warm amber"),
+    ("Liquid Glass", "liquidglass", "Frosted gray"),
+    ("Dark", "dark", "Deep kOS dark"),
+    ("Light", "light", "Bright kOS light"),
+]
+ACCENTS = [("Amber", "amber", "217,154,78"), ("Slate", "slate", "154,161,173"),
+           ("Blue", "blue", "74,134,240"), ("Green", "green", "46,204,113"),
+           ("Purple", "purple", "155,89,182"), ("Red", "red", "231,76,60")]
 
 
 def find_logo():
@@ -24,13 +40,6 @@ def find_logo():
         if os.path.exists(p):
             return p
     return None
-
-THEMES = [
-    ("Lamplight", "lamplight", "Warm, lamplit"),
-    ("Liquid Glass", "liquidglass", "Cool frosted gray"),
-    ("Dark", "dark", "kOS dark"),
-    ("Light", "light", "kOS light"),
-]
 
 
 def run_host(args):
@@ -44,95 +53,252 @@ def run_host(args):
         return False
 
 
+def kos_info():
+    code, ver = "", ""
+    try:
+        with open("/usr/share/kos/codename") as f:
+            code = f.read().strip()
+    except Exception:
+        pass
+    try:
+        ver = subprocess.check_output(
+            ["dpkg-query", "-W", "-f=${Version}", "kos-desktop"],
+            text=True, stderr=subprocess.DEVNULL).strip()
+    except Exception:
+        pass
+    return ver, code
+
+
+def kwrite(cfgfile, group, key, value):
+    run_host(["kwriteconfig6", "--file", cfgfile, "--group", group,
+              "--key", key, str(value)])
+
+
 class Window(Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title="kOS Control Center")
-        self.set_default_size(560, 660)
+        self.set_default_size(600, 700)
 
         self.toasts = Adw.ToastOverlay()
         self.set_content(self.toasts)
-
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.toasts.set_child(root)
 
-        stack = Adw.ViewStack()
+        self.stack = Adw.ViewStack()
         header = Adw.HeaderBar()
-        switcher = Adw.ViewSwitcher(stack=stack, policy=Adw.ViewSwitcherPolicy.WIDE)
+        switcher = Adw.ViewSwitcher(stack=self.stack, policy=Adw.ViewSwitcherPolicy.WIDE)
         header.set_title_widget(switcher)
         root.append(header)
-        root.append(stack)
+        root.append(self.stack)
 
-        stack.add_titled_with_icon(self._welcome(), "welcome", "Welcome", "user-home-symbolic")
-        stack.add_titled_with_icon(self._themes(), "themes", "Themes", "applications-graphics-symbolic")
+        self.stack.add_titled_with_icon(self._welcome(), "welcome", "Home", "user-home-symbolic")
+        self.stack.add_titled_with_icon(self._themes(), "themes", "Themes", "applications-graphics-symbolic")
+        self.stack.add_titled_with_icon(self._appearance(), "appearance", "Appearance", "preferences-desktop-wallpaper-symbolic")
+        self.stack.add_titled_with_icon(self._tweaks(), "tweaks", "Tweaks", "preferences-system-symbolic")
+        self.stack.add_titled_with_icon(self._system(), "system", "System", "computer-symbolic")
 
-    # --- Welcome page ---
+    # --- Home ---
     def _welcome(self):
         page = Adw.PreferencesPage()
         clamp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14,
                         margin_top=28, margin_bottom=28, halign=Gtk.Align.CENTER)
-
         logo = find_logo()
         if logo:
             img = Gtk.Image.new_from_file(logo)
             img.set_pixel_size(96)
             clamp.append(img)
-
         title = Gtk.Label(label="kOS")
         title.add_css_class("title-1")
         clamp.append(title)
-
         sub = Gtk.Label(label="Kali, reimagined with KDE Plasma.")
         sub.add_css_class("dim-label")
         clamp.append(sub)
-
-        ver = Gtk.Label(label=f"Control Center {VERSION}")
-        ver.add_css_class("caption")
-        ver.add_css_class("dim-label")
-        clamp.append(ver)
+        ver, code = kos_info()
+        tag = (f'kOS "{code}"' if code else "kOS") + (f"  ·  {ver}" if ver else "")
+        vl = Gtk.Label(label=tag)
+        vl.add_css_class("caption")
+        vl.add_css_class("dim-label")
+        clamp.append(vl)
 
         links = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10,
                         halign=Gtk.Align.CENTER, margin_top=8)
-        site_btn = Gtk.Button(label="Website")
-        site_btn.add_css_class("pill")
-        site_btn.add_css_class("suggested-action")
-        site_btn.connect("clicked", lambda *_: self._open(SITE))
-        repo_btn = Gtk.Button(label="GitHub")
-        repo_btn.add_css_class("pill")
-        repo_btn.connect("clicked", lambda *_: self._open(REPO))
-        links.append(site_btn)
-        links.append(repo_btn)
+        for label, uri, sug in (("Website", SITE, True), ("GitHub", REPO, False)):
+            b = Gtk.Button(label=label)
+            b.add_css_class("pill")
+            if sug:
+                b.add_css_class("suggested-action")
+            b.connect("clicked", lambda _b, u=uri: self._open(u))
+            links.append(b)
         clamp.append(links)
 
-        group = Adw.PreferencesGroup()
-        group.add(clamp)
-        page.add(group)
-        return page
+        grp = Adw.PreferencesGroup()
+        grp.add(clamp)
+        page.add(grp)
 
-    # --- Themes page ---
-    def _themes(self):
-        page = Adw.PreferencesPage()
-        group = Adw.PreferencesGroup(
-            title="Desktop theme",
-            description="Switch the kOS look live — color scheme and wallpaper together.",
-        )
-        for name, key, desc in THEMES:
-            row = Adw.ActionRow(title=name, subtitle=desc)
-            btn = Gtk.Button(label="Apply")
+        actions = Adw.PreferencesGroup(title="Quick actions")
+        for title_, subtitle, cmd, label in (
+            ("Welcome wizard", "Re-run the first-boot setup", ["kos", "welcome"], "Open"),
+            ("Surprise me", "Random accent color", ["kos", "accent", "random"], "Roll"),
+            ("Celebrate", "A little rainbow in the terminal", ["konsole", "-e", "kos", "party"], "Party"),
+        ):
+            row = Adw.ActionRow(title=title_, subtitle=subtitle)
+            btn = Gtk.Button(label=label, valign=Gtk.Align.CENTER)
             btn.add_css_class("flat")
-            btn.set_valign(Gtk.Align.CENTER)
-            btn.connect("clicked", self._apply, name, key)
+            btn.connect("clicked", lambda _b, c=cmd, t=title_: (run_host(c), self._toast(t)))
             row.add_suffix(btn)
             row.set_activatable_widget(btn)
-            group.add(row)
-        page.add(group)
+            actions.add(row)
+        page.add(actions)
         return page
 
-    def _apply(self, _btn, name, key):
-        ok = run_host(["kos", "theme", key])
-        if ok:
-            self._toast(f"Applied {name}")
-        else:
-            self._toast("Couldn't run 'kos theme' — is kos-desktop installed?")
+    # --- Themes ---
+    def _themes(self):
+        page = Adw.PreferencesPage()
+        grp = Adw.PreferencesGroup(
+            title="Desktop theme",
+            description="Color scheme and matching wallpaper, applied live.")
+        for name, key, desc in THEMES:
+            row = Adw.ActionRow(title=name, subtitle=desc)
+            btn = Gtk.Button(label="Apply", valign=Gtk.Align.CENTER)
+            btn.add_css_class("flat")
+            btn.connect("clicked", lambda _b, n=name, k=key:
+                        (run_host(["kos", "theme", k]), self._toast(f"Applied {n}")))
+            row.add_suffix(btn)
+            row.set_activatable_widget(btn)
+            grp.add(row)
+        page.add(grp)
+        cyc = Adw.PreferencesGroup()
+        row = Adw.ActionRow(title="Cycle themes", subtitle="Jump to the next look")
+        btn = Gtk.Button(label="Next", valign=Gtk.Align.CENTER)
+        btn.add_css_class("flat")
+        btn.connect("clicked", lambda *_: (run_host(["kos", "next"]), self._toast("Next theme")))
+        row.add_suffix(btn)
+        row.set_activatable_widget(btn)
+        cyc.add(row)
+        page.add(cyc)
+        return page
+
+    # --- Appearance: wallpaper + accent ---
+    def _appearance(self):
+        page = Adw.PreferencesPage()
+        wg = Adw.PreferencesGroup(
+            title="Wallpaper",
+            description="Set just the background (overrides the theme's default).")
+        for name, key, desc in WALLPAPERS:
+            row = Adw.ActionRow(title=name, subtitle=desc)
+            btn = Gtk.Button(label="Set", valign=Gtk.Align.CENTER)
+            btn.add_css_class("flat")
+            btn.connect("clicked", lambda _b, n=name, k=key:
+                        (run_host(["kos", "wallpaper", k]), self._toast(f"Wallpaper: {n}")))
+            row.add_suffix(btn)
+            row.set_activatable_widget(btn)
+            wg.add(row)
+        page.add(wg)
+
+        ag = Adw.PreferencesGroup(title="Accent color",
+                                  description="The highlight color across the desktop.")
+        flow = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE,
+                           max_children_per_line=6, min_children_per_line=3,
+                           homogeneous=True, column_spacing=10, row_spacing=10,
+                           margin_top=10, margin_bottom=6, margin_start=6, margin_end=6)
+        for label, key, rgb in ACCENTS:
+            r, g, b = (int(x) for x in rgb.split(","))
+            btn = Gtk.Button(label=label)
+            btn.set_size_request(80, 44)
+            btn.add_css_class("pill")
+            btn.set_tooltip_text(label)
+            try:
+                css = Gtk.CssProvider()
+                data = f"button {{ background: rgb({r},{g},{b}); color:#fff; }}"
+                try:
+                    css.load_from_data(data, -1)
+                except TypeError:
+                    css.load_from_data(data.encode())
+                btn.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            except Exception:
+                pass
+            btn.connect("clicked", lambda _b, k=key, n=label:
+                        (run_host(["kos", "accent", k]), self._toast(f"Accent: {n}")))
+            flow.append(btn)
+        ag.add(flow)
+        page.add(ag)
+        return page
+
+    # --- Tweaks ---
+    def _tweaks(self):
+        page = Adw.PreferencesPage()
+        grp = Adw.PreferencesGroup(
+            title="Desktop behavior",
+            description="Most of these take effect at your next login.")
+
+        click = Adw.SwitchRow(title="Single-click to open",
+                              subtitle="Open files and folders with one click")
+        click.connect("notify::active", lambda r, _p:
+                      kwrite("kdeglobals", "KDE", "SingleClick", "true" if r.get_active() else "false"))
+        grp.add(click)
+
+        snappy = Adw.SwitchRow(title="Snappy mode",
+                               subtitle="Reduce animations — smoother in a VM")
+        snappy.connect("notify::active", lambda r, _p:
+                       kwrite("kdeglobals", "KDE", "AnimationDurationFactor",
+                              "0.5" if r.get_active() else "1"))
+        grp.add(snappy)
+
+        night = Adw.SwitchRow(title="Night Light",
+                              subtitle="Warmer colors in the evening")
+        night.connect("notify::active", lambda r, _p:
+                      kwrite("kwinrc", "NightColor", "Active", "true" if r.get_active() else "false"))
+        grp.add(night)
+        page.add(grp)
+
+        auto = Adw.PreferencesGroup(title="Automation")
+        dn = Adw.SwitchRow(title="Day / night theme",
+                           subtitle="Warm wallpaper by day, dark by night")
+        dn.connect("notify::active", lambda r, _p:
+                   (run_host(["kos", "auto", "on" if r.get_active() else "off"]),
+                    self._toast("Day/night: " + ("on" if r.get_active() else "off"))))
+        auto.add(dn)
+        page.add(auto)
+        return page
+
+    # --- System ---
+    def _system(self):
+        page = Adw.PreferencesPage()
+        ver, code = kos_info()
+        info = Adw.PreferencesGroup(title="About")
+        info.add(Adw.ActionRow(title="Codename", subtitle=code or "—"))
+        info.add(Adw.ActionRow(title="Version", subtitle=ver or "—"))
+        info.add(Adw.ActionRow(title="Base", subtitle="Kali Linux · KDE Plasma"))
+        page.add(info)
+
+        upd = Adw.PreferencesGroup(title="Updates")
+        r1 = Adw.ActionRow(title="Check for updates", subtitle="Look for a newer kOS")
+        b1 = Gtk.Button(label="Check", valign=Gtk.Align.CENTER)
+        b1.add_css_class("flat")
+        b1.connect("clicked", lambda *_: (run_host(["kos-updatecheck"]), self._toast("Checking for updates…")))
+        r1.add_suffix(b1)
+        upd.add(r1)
+        r2 = Adw.ActionRow(title="Update kOS", subtitle="Opens a terminal to install the latest")
+        b2 = Gtk.Button(label="Update", valign=Gtk.Align.CENTER)
+        b2.add_css_class("flat")
+        b2.add_css_class("suggested-action")
+        b2.connect("clicked", lambda *_: run_host(["konsole", "-e", "bash", "-c", "kos update; echo; read -p 'Press Enter to close…'"]))
+        r2.add_suffix(b2)
+        upd.add(r2)
+        page.add(upd)
+
+        links = Adw.PreferencesGroup(title="Links")
+        for label, uri in (("Website", SITE), ("GitHub", REPO),
+                           ("Report a bug", REPO + "/issues"), ("Docs", REPO + "#readme")):
+            row = Adw.ActionRow(title=label)
+            btn = Gtk.Button(icon_name="adw-external-link-symbolic", valign=Gtk.Align.CENTER)
+            btn.add_css_class("flat")
+            btn.connect("clicked", lambda _b, u=uri: self._open(u))
+            row.add_suffix(btn)
+            row.set_activatable_widget(btn)
+            links.add(row)
+        page.add(links)
+        return page
 
     def _open(self, uri):
         Gtk.UriLauncher(uri=uri).launch(self, None, None)
