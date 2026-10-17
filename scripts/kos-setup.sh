@@ -488,6 +488,130 @@ grep -q '^LOGO=' /etc/os-release \
 grep -q '^HOME_URL=' /etc/os-release || echo 'HOME_URL="https://kaidevious.github.io/kOS/"' >> /etc/os-release
 grep -q '^SUPPORT_URL=' /etc/os-release || echo 'SUPPORT_URL="https://github.com/KaiDevious/kOS/issues"' >> /etc/os-release
 
+say "Extras: day/night theme, update notifier, tips, chime, aliases"
+apt-get install -y cmatrix libnotify-bin >/dev/null 2>&1 || true
+
+# --- helper scripts ---
+cat > /usr/bin/kos-daynight <<'EOF'
+#!/bin/bash
+# warm wallpaper by day, dark by night
+h=$(date +%H)
+if [ "$h" -ge 7 ] && [ "$h" -lt 19 ]; then wp=kos-lamplight.png; else wp=kos-dark.png; fi
+command -v plasma-apply-wallpaperimage >/dev/null 2>&1 && \
+  plasma-apply-wallpaperimage "/usr/share/wallpapers/kOS/$wp" >/dev/null 2>&1 || true
+EOF
+chmod 755 /usr/bin/kos-daynight
+
+cat > /usr/bin/kos-updatecheck <<'EOF'
+#!/bin/bash
+# notify if a newer kOS is in the repo
+inst=$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null) || exit 0
+repo=$(curl -fsS --max-time 8 "https://kaidevious.github.io/kOS/apt/Packages?t=$(date +%s)" 2>/dev/null \
+        | awk '/^Package: kos-desktop/{f=1} f&&/^Version:/{print $2; exit}')
+[ -n "$repo" ] || exit 0
+if dpkg --compare-versions "$repo" gt "$inst"; then
+  command -v notify-send >/dev/null 2>&1 && \
+    notify-send -a kOS -i io.github.kaidevious.kOS "kOS update available" \
+      "Version $repo is out (you have $inst). Update with:  kos update"
+fi
+EOF
+chmod 755 /usr/bin/kos-updatecheck
+
+cat > /usr/bin/kos-tip <<'EOF'
+#!/bin/bash
+TIPS=(
+  "Switch your whole look live:  kos next"
+  "Roll a random accent color:  kos accent random"
+  "Keep kOS fresh:  kos update"
+  "Re-run the welcome wizard anytime:  kos welcome"
+  "Warm by day, dark by night:  kos auto on"
+  "Set just the wallpaper:  kos wallpaper liquidglass"
+  "Need the weather?  kos weather"
+  "Feeling it?  kos party"
+  "Open the control panel:  kos center"
+  "Every kOS command:  kos help"
+)
+t="${TIPS[$RANDOM % ${#TIPS[@]}]}"
+if [ "$1" = "--notify" ] && command -v notify-send >/dev/null 2>&1; then
+  notify-send -a kOS -i io.github.kaidevious.kOS "kOS tip" "$t"
+else
+  printf '\033[1;34m kOS tip:\033[0m %s\n' "$t"
+fi
+EOF
+chmod 755 /usr/bin/kos-tip
+
+# --- systemd user units ---
+mkdir -p /etc/systemd/user
+cat > /etc/systemd/user/kos-daynight.service <<'EOF'
+[Unit]
+Description=kOS day/night wallpaper
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/kos-daynight
+EOF
+cat > /etc/systemd/user/kos-daynight.timer <<'EOF'
+[Unit]
+Description=kOS day/night wallpaper timer
+[Timer]
+OnStartupSec=30
+OnCalendar=*-*-* 07,19:00:00
+Persistent=true
+[Install]
+WantedBy=timers.target
+EOF
+cat > /etc/systemd/user/kos-updatecheck.service <<'EOF'
+[Unit]
+Description=kOS update check
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/kos-updatecheck
+EOF
+cat > /etc/systemd/user/kos-updatecheck.timer <<'EOF'
+[Unit]
+Description=kOS update check timer
+[Timer]
+OnStartupSec=2min
+OnCalendar=daily
+Persistent=true
+[Install]
+WantedBy=timers.target
+EOF
+# update notifier on by default (non-intrusive); day/night is opt-in via 'kos auto on'
+systemctl --global enable kos-updatecheck.timer >/dev/null 2>&1 || true
+
+# --- startup chime + tip-of-the-day on login (KDE autostart) ---
+cat > /etc/xdg/autostart/kos-chime.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=kOS startup chime
+Exec=sh -c 'sleep 4; paplay /usr/share/kos/startup.oga 2>/dev/null || canberra-gtk-play -f /usr/share/kos/startup.oga 2>/dev/null || true'
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2
+NoDisplay=true
+EOF
+cat > /etc/xdg/autostart/kos-tip.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=kOS tip of the day
+Exec=sh -c 'sleep 25; kos-tip --notify'
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2
+NoDisplay=true
+EOF
+
+# --- zsh quality-of-life aliases ---
+if ! grep -q '# kOS aliases' /etc/zsh/zshrc 2>/dev/null; then
+  cat >> /etc/zsh/zshrc <<'EOF'
+
+# kOS aliases
+alias update='kos update'
+alias ll='ls -lah --color=auto'
+alias la='ls -A --color=auto'
+alias please='sudo'
+alias kfetch='fastfetch'
+EOF
+fi
+
 say "Apps: Windows (Wine) + Apple file support"
 dpkg --add-architecture i386 >/dev/null 2>&1 || true
 apt-get update >/dev/null 2>&1 || true

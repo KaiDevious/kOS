@@ -2,7 +2,7 @@
 # kOS — umbrella command. Dispatches to the kOS tools.
 # report the real installed package version (falls back if dpkg can't say)
 VERSION="$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)"
-[ -n "$VERSION" ] || VERSION="1.2.10"
+[ -n "$VERSION" ] || VERSION="1.2.11"
 SITE="https://kaidevious.github.io/kOS/"
 REPO="https://github.com/KaiDevious/kOS"
 WP=/usr/share/wallpapers/kOS
@@ -72,6 +72,46 @@ case "$cmd" in
       notify-send -a kOS -i io.github.kaidevious.kOS "kOS" "$msg"
     else echo "kos: notify-send not found"; exit 1; fi ;;
 
+  matrix)
+    if command -v cmatrix >/dev/null 2>&1; then exec cmatrix -ab -C green
+    else echo "kos: cmatrix not installed — run 'sudo kos setup'"; exit 1; fi ;;
+
+  party)
+    trap 'printf "\033[0m\n"; exit 0' INT
+    s="   k O S   I S   G R E A T   "
+    for n in $(seq 1 60); do
+      out=""; i=0
+      while [ $i -lt ${#s} ]; do
+        ch="${s:$i:1}"; case $(( (i + n) % 6 )) in
+          0) c=196;; 1) c=208;; 2) c=226;; 3) c=46;; 4) c=51;; 5) c=201;; esac
+        out="$out\033[1;38;5;${c}m${ch}"; i=$((i+1))
+      done
+      printf "\r%b\033[0m" "$out"; sleep 0.07
+    done; printf "\n" ;;
+
+  weather)
+    city="$*"
+    if command -v curl >/dev/null 2>&1; then
+      curl -fsS --max-time 8 "https://wttr.in/${city// /+}?format=3" 2>/dev/null \
+        || echo "kos: couldn't reach the weather service (offline?)"
+    else echo "kos: curl not found"; exit 1; fi ;;
+
+  tip)
+    if command -v kos-tip >/dev/null 2>&1; then exec kos-tip
+    else echo "Tip: run 'sudo kos setup' to unlock all the kOS extras."; fi ;;
+
+  auto)
+    case "${1:-}" in
+      on)  systemctl --user enable --now kos-daynight.timer 2>/dev/null \
+             && echo "day/night auto theme: ON" || echo "kos: couldn't enable (is the timer installed?)" ;;
+      off) systemctl --user disable --now kos-daynight.timer 2>/dev/null \
+             && echo "day/night auto theme: OFF" || echo "kos: couldn't disable" ;;
+      ""|status)
+        if systemctl --user is-enabled kos-daynight.timer >/dev/null 2>&1; then echo "day/night auto theme: ON"
+        else echo "day/night auto theme: OFF  (turn on with: kos auto on)"; fi ;;
+      *) echo "usage: kos auto on|off" ;;
+    esac ;;
+
   welcome|oobe)
     if command -v kos-oobe >/dev/null 2>&1; then exec kos-oobe --force
     else echo "kos: welcome wizard not installed (reinstall kos-desktop)"; exit 1; fi ;;
@@ -123,11 +163,18 @@ kOS $VERSION — usage:
     kos themes                list the themes
     kos wallpaper <name>      set just the wallpaper
     kos accent <color>        amber|slate|blue|green|purple|red|random
+    kos auto on|off           day/night auto theme (warm by day, dark by night)
 
   Apps
     kos welcome               re-run the first-boot welcome wizard
     kos center                open the kOS Control Center
     kos notify [message]      pop a desktop notification
+
+  Fun
+    kos matrix                digital rain
+    kos party                 rainbow celebration
+    kos weather [city]        weather in your terminal
+    kos tip                   a random kOS tip
 
   System
     kos update                update kOS to the latest version
