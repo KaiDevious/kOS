@@ -1,4 +1,4 @@
-im still lazy so thanks claude for writing this (claude wrote this all so then i can create an installer)
+im still lazy so thanks claude for writing this (i cant believe this is an ACTUAL apt package...)
 
 # kOS
 
