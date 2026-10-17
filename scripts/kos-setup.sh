@@ -263,6 +263,65 @@ update-alternatives --install /usr/share/plymouth/themes/default.plymouth defaul
 update-alternatives --set default.plymouth /usr/share/plymouth/themes/kos/kos.plymouth >/dev/null 2>&1 || true
 update-initramfs -u >/dev/null 2>&1 || true
 
+say "KDE Plasma splash screen"
+# a kOS splash: logo + progress bar, shown after login before the desktop paints
+SP=/usr/share/plasma/look-and-feel/com.kos.splash
+mkdir -p "$SP/contents/splash/images"
+cp "$ASSETS/logo-dark.png" "$SP/contents/splash/images/logo.png" 2>/dev/null || true
+cat > "$SP/metadata.json" <<'JSON'
+{
+    "KPlugin": {
+        "Id": "com.kos.splash",
+        "Name": "kOS",
+        "Authors": [{ "Name": "Kai" }],
+        "Category": "Plasma Look and Feel",
+        "License": "GPL-3.0"
+    },
+    "X-Plasma-APIVersion": "2"
+}
+JSON
+cat > "$SP/contents/splash/Splash.qml" <<'QML'
+import QtQuick 2.5
+
+Rectangle {
+    id: root
+    color: "#070b0f"
+    property int stage
+
+    Image {
+        id: logo
+        anchors.centerIn: parent
+        source: "images/logo.png"
+        sourceSize.height: 180
+        fillMode: Image.PreserveAspectFit
+        opacity: 0
+        NumberAnimation on opacity { from: 0; to: 1; duration: 700; running: true }
+    }
+    Text {
+        anchors { top: logo.bottom; topMargin: 20; horizontalCenter: parent.horizontalCenter }
+        text: "kOS"
+        color: "#86C8FF"
+        font.pixelSize: 30
+        font.letterSpacing: 3
+    }
+    Rectangle {
+        anchors { bottom: parent.bottom; bottomMargin: 90; horizontalCenter: parent.horizontalCenter }
+        width: 220; height: 3; radius: 3; color: "#161c26"
+        Rectangle {
+            height: parent.height; radius: 3; color: "#4a86f0"
+            width: parent.width * Math.min(root.stage / 6, 1)
+            Behavior on width { NumberAnimation { duration: 250 } }
+        }
+    }
+}
+QML
+# select the kOS splash system-wide and for the current user
+for F in /etc/xdg/ksplashrc "$UH/.config/ksplashrc"; do
+  mkdir -p "$(dirname "$F")"
+  printf '[KSplash]\nTheme=com.kos.splash\nEngine=KSplashQML\n' > "$F"
+done
+chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$UH/.config/ksplashrc" 2>/dev/null || true
+
 say "Apps: Windows (Wine) + Apple file support"
 dpkg --add-architecture i386 >/dev/null 2>&1 || true
 apt-get update >/dev/null 2>&1 || true
