@@ -34,6 +34,43 @@ THEMES = [
     ("Light", "light", "Clean kOS light"),
 ]
 
+WP_DIR = "/usr/share/wallpapers/kOS"
+WALLPAPERS = [
+    ("Lamplight", f"{WP_DIR}/kos-lamplight.png", "Warm amber"),
+    ("Liquid Glass", f"{WP_DIR}/kos-liquidglass.png", "Frosted gray"),
+    ("Dark", f"{WP_DIR}/kos-dark.png", "Deep kOS dark"),
+    ("Light", f"{WP_DIR}/kos-light.png", "Bright kOS light"),
+]
+
+
+def _kwrite_bin():
+    for b in ("kwriteconfig6", "kwriteconfig5"):
+        if any(os.access(os.path.join(p, b), os.X_OK)
+               for p in os.environ.get("PATH", "").split(os.pathsep)):
+            return b
+    return None
+
+
+def kwrite(group, key, value):
+    """Write a KDE global setting (takes effect on next login, some live)."""
+    b = _kwrite_bin()
+    if not b:
+        return
+    try:
+        subprocess.Popen([b, "--file", "kdeglobals", "--group", group,
+                          "--key", key, str(value)])
+    except Exception:
+        pass
+
+
+def set_wallpaper(path):
+    if not os.path.exists(path):
+        return
+    try:
+        subprocess.Popen(["plasma-apply-wallpaperimage", path])
+    except Exception:
+        pass
+
 
 def find_logo():
     for p in LOGO_CANDIDATES:
@@ -73,6 +110,8 @@ class Welcome(Adw.ApplicationWindow):
                                      allow_mouse_drag=False, vexpand=True)
         self.carousel.add(self._page_welcome())
         self.carousel.add(self._page_theme())
+        self.carousel.add(self._page_wallpaper())
+        self.carousel.add(self._page_behavior())
         self.carousel.add(self._page_done())
         root.append(self.carousel)
 
@@ -155,6 +194,58 @@ class Welcome(Adw.ApplicationWindow):
             box.append(frame)
         return box
 
+    def _page_wallpaper(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10,
+                      valign=Gtk.Align.CENTER, margin_start=48, margin_end=48)
+        t = Gtk.Label(label="Pick a wallpaper")
+        t.add_css_class("title-2")
+        box.append(t)
+        s = Gtk.Label(label="Optional — this overrides the theme's default background.")
+        s.add_css_class("dim-label")
+        s.set_margin_bottom(10)
+        box.append(s)
+
+        group = None
+        for name, path, desc in WALLPAPERS:
+            row = Adw.ActionRow(title=name, subtitle=desc)
+            radio = Gtk.CheckButton()
+            if group is None:
+                group = radio
+            else:
+                radio.set_group(group)
+            radio.set_valign(Gtk.Align.CENTER)
+            radio.connect("toggled", self._pick_wp, path)
+            row.add_prefix(radio)
+            row.set_activatable_widget(radio)
+            frame = Adw.PreferencesGroup()
+            frame.add(row)
+            box.append(frame)
+        return box
+
+    def _page_behavior(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10,
+                      valign=Gtk.Align.CENTER, margin_start=48, margin_end=48)
+        t = Gtk.Label(label="Desktop behavior")
+        t.add_css_class("title-2")
+        box.append(t)
+        s = Gtk.Label(label="A couple of tweaks. These apply the next time you log in.")
+        s.add_css_class("dim-label")
+        s.set_margin_bottom(10)
+        box.append(s)
+
+        grp = Adw.PreferencesGroup()
+        click = Adw.SwitchRow(title="Single-click to open",
+                              subtitle="Open files and folders with one click")
+        click.connect("notify::active", self._toggle_singleclick)
+        grp.add(click)
+
+        snappy = Adw.SwitchRow(title="Snappy mode",
+                               subtitle="Reduce animations — smoother in a VM")
+        snappy.connect("notify::active", self._toggle_snappy)
+        grp.add(snappy)
+        box.append(grp)
+        return box
+
     def _page_done(self):
         box = self._centered()
         check = Gtk.Image.new_from_icon_name("emblem-ok-symbolic")
@@ -185,6 +276,16 @@ class Welcome(Adw.ApplicationWindow):
     def _pick(self, btn, key):
         if btn.get_active():
             apply_theme(key)
+
+    def _pick_wp(self, btn, path):
+        if btn.get_active():
+            set_wallpaper(path)
+
+    def _toggle_singleclick(self, row, _p):
+        kwrite("KDE", "SingleClick", "true" if row.get_active() else "false")
+
+    def _toggle_snappy(self, row, _p):
+        kwrite("KDE", "AnimationDurationFactor", "0.5" if row.get_active() else "1")
 
     def _index(self):
         return int(self.carousel.get_position())
