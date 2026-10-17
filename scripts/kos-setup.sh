@@ -193,12 +193,16 @@ grep -q 'Theme=Papirus-Dark' /etc/xdg/kdeglobals 2>/dev/null || printf '\n[Icons
 # kOS desktop layout").
 
 say "App menu: hide Kali web links, add kOS ones"
-# hide Kali's app-menu web shortcuts (Kali Bugs, Docs, Forums, Tools, ...)
-# insert NoDisplay directly (no desktop-file-edit — it re-validates and floods
-# the terminal with harmless kali-* category warnings)
+# Hide ONLY the "Kali & OffSec Links" web shortcuts (Bugs, Docs, Forums,
+# NetHunter, ...). Leave every actual security tool alone.
+# First undo any over-broad NoDisplay we inserted before (right after the
+# header), so tools wrongly hidden by earlier versions come back.
 for f in /usr/share/applications/kali-*.desktop; do
   [ -f "$f" ] || continue
-  grep -q '^NoDisplay=' "$f" || sed -i '/^\[Desktop Entry\]/a NoDisplay=true' "$f"
+  sed -i '/^\[Desktop Entry\]/{n;/^NoDisplay=true$/d}' "$f"
+  if grep -q 'kali-kali-offsec-links' "$f"; then
+    sed -i '/^\[Desktop Entry\]/a NoDisplay=true' "$f"
+  fi
 done
 # add kOS app-menu entries (mirror the browser's kOS Links)
 koslink(){  # name  url  filename  icon
