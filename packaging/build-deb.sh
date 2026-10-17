@@ -11,7 +11,9 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.3.0"
+VERSION="1.3.1"
+# build codename (K-creature series): Kestrel -> Kodiak -> Kraken -> Kinkajou -> Kakapo -> Kudu ...
+CODENAME="Kestrel"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
@@ -34,6 +36,7 @@ grep -q 'gir1.2-gtk-4.0' "$T/DEBIAN/control" || \
 install -D -m755 "$REPO/scripts/kos-setup.sh"      "$T/usr/bin/kos-setup"
 install -D -m755 "$REPO/scripts/kos"               "$T/usr/bin/kos"
 install -D -m644 "$REPO/branding/kos-ascii.txt"    "$T/usr/share/kos/kos-ascii.txt"
+printf '%s\n' "$CODENAME" > "$T/usr/share/kos/codename"   # build codename
 
 # startup chime (played on login by kos-setup's autostart entry)
 [ -f "$REPO/branding/startup.oga" ] && install -D -m644 "$REPO/branding/startup.oga" "$T/usr/share/kos/startup.oga"

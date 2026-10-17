@@ -2,7 +2,8 @@
 # kOS — umbrella command. Dispatches to the kOS tools.
 # report the real installed package version (falls back if dpkg can't say)
 VERSION="$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)"
-[ -n "$VERSION" ] || VERSION="1.3.0"
+[ -n "$VERSION" ] || VERSION="1.3.1"
+CODE="$(cat /usr/share/kos/codename 2>/dev/null)"
 SITE="https://kaidevious.github.io/kOS/"
 REPO="https://github.com/KaiDevious/kOS"
 WP=/usr/share/wallpapers/kOS
@@ -137,7 +138,7 @@ case "$cmd" in
   about)
     . /etc/os-release 2>/dev/null
     printf '%s\n' \
-      "kOS $VERSION" \
+      "kOS${CODE:+ \"$CODE\"}  ·  build $VERSION" \
       "${PRETTY_NAME:-kOS} · $(uname -m) · kernel $(uname -r)" \
       "Base: Kali Linux · Desktop: KDE Plasma" \
       "Themes: lamplight · liquidglass · dark · light" \
@@ -146,11 +147,11 @@ case "$cmd" in
       "GitHub:  $REPO" ;;
 
   version|-v|--version)
-    echo "kOS $VERSION" ;;
+    echo "kOS${CODE:+ \"$CODE\"} ($VERSION)" ;;
 
   help|-h|--help)
     cat <<H
-kOS $VERSION — usage:
+kOS${CODE:+ "$CODE"} (build $VERSION) — usage:
 
   Setup & look
     sudo kos setup            apply the full kOS look + system tweaks

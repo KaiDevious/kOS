@@ -19,9 +19,17 @@ if [ "$(id -u)" -ne 0 ]; then echo "Run with sudo: sudo bash kos-setup.sh"; exit
 rm -f /usr/local/bin/kos /usr/local/bin/kos-setup /usr/local/bin/kos-theme 2>/dev/null || true
 
 say "1/8  Naming the OS kOS"
+CODE="$(cat /usr/share/kos/codename 2>/dev/null)"
+PRETTY="kOS${CODE:+ $CODE}"
 cp --remove-destination /usr/lib/os-release /etc/os-release
-sed -i 's/^NAME=.*/NAME="kOS"/; s/^PRETTY_NAME=.*/PRETTY_NAME="kOS"/' /etc/os-release
-[ -f /etc/lsb-release ] && sed -i 's/^DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION="kOS"/' /etc/lsb-release
+sed -i "s/^NAME=.*/NAME=\"kOS\"/; s/^PRETTY_NAME=.*/PRETTY_NAME=\"$PRETTY\"/" /etc/os-release
+if [ -n "$CODE" ]; then
+  lc="$(printf '%s' "$CODE" | tr '[:upper:]' '[:lower:]')"
+  grep -q '^VERSION_CODENAME=' /etc/os-release \
+    && sed -i "s/^VERSION_CODENAME=.*/VERSION_CODENAME=$lc/" /etc/os-release \
+    || echo "VERSION_CODENAME=$lc" >> /etc/os-release
+fi
+[ -f /etc/lsb-release ] && sed -i "s/^DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION=\"$PRETTY\"/" /etc/lsb-release
 
 say "2/8  Silencing the PC-speaker beep"
 printf 'blacklist pcspkr\nblacklist snd_pcsp\n' > /etc/modprobe.d/nobeep.conf
