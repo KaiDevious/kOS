@@ -2,7 +2,7 @@
 Type=Application
 Name=kOS Welcome
 Comment=First-run setup for kOS
-Exec=kos-oobe
+Exec=env GSK_RENDERER=cairo kos-oobe
 Icon=io.github.kaidevious.kOS
 Terminal=false
 OnlyShowIn=KDE;

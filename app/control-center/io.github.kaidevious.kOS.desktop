@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=kOS Control Center
 Comment=Switch kOS themes and find your way around kOS
-Exec=kos-control-center
+Exec=env GSK_RENDERER=cairo kos-control-center
 Icon=io.github.kaidevious.kOS
 Terminal=false
 Type=Application

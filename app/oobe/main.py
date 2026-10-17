@@ -164,7 +164,7 @@ class Welcome(Adw.ApplicationWindow):
                      self._page_theme(), self._page_accent(),
                      self._page_wallpaper(), self._page_behavior(),
                      self._page_done()):
-            self.carousel.add(page)
+            self.carousel.append(page)
         root.append(self.carousel)
 
         root.append(Adw.CarouselIndicatorDots(carousel=self.carousel,
