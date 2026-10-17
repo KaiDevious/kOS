@@ -209,14 +209,11 @@ fi
 
 say "App menu: hide Kali web links, add kOS ones"
 # hide Kali's app-menu web shortcuts (Kali Bugs, Docs, Forums, Tools, ...)
-DFE="$(command -v desktop-file-edit || true)"
+# insert NoDisplay directly (no desktop-file-edit — it re-validates and floods
+# the terminal with harmless kali-* category warnings)
 for f in /usr/share/applications/kali-*.desktop; do
   [ -f "$f" ] || continue
-  if [ -n "$DFE" ]; then
-    "$DFE" --set-key=NoDisplay --set-value=true "$f" 2>/dev/null || true
-  else
-    grep -q '^NoDisplay=' "$f" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' "$f"
-  fi
+  grep -q '^NoDisplay=' "$f" || sed -i '/^\[Desktop Entry\]/a NoDisplay=true' "$f"
 done
 # add kOS app-menu entries (mirror the browser's kOS Links)
 koslink(){  # name  url  filename  icon
