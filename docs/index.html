@@ -877,6 +877,13 @@ sudo bash scripts/kos-setup.sh</code></pre>
       <h2>What's new</h2>
       <p class="lead">Recent fixes.</p>
       <div class="log">
+        <div class="day">Oct 17</div>
+        <ul>
+          <li><b>kOS 1.1 — first-boot welcome.</b> A one-time setup wizard greets you on first login: name, theme, accent color, wallpaper, and behavior (single-click, snappy mode, night light).</li>
+          <li><b>Signed apt repo.</b> The repository is now GPG-signed — install without <code>[trusted=yes]</code>, apt verifies every package.</li>
+          <li><b>De-Kali'd browser.</b> Setup clears the default Kali bookmarks and drops in a tidy <b>kOS Links</b> folder (site, GitHub, docs, issues).</li>
+          <li><b>One-line install.</b> <code>curl -fsSL …/apt/install.sh | sudo bash</code> adds the key + repo for you.</li>
+        </ul>
         <div class="day">Oct 11</div>
         <ul>
           <li><b>kOS apt repo.</b> Install with <code>apt install kos-desktop</code> after adding the kOS repo — no more downloading a .deb by hand.</li>
