@@ -2,9 +2,19 @@
 # kOS — umbrella command. Dispatches to the kOS tools.
 # report the real installed package version (falls back if dpkg can't say)
 VERSION="$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)"
-[ -n "$VERSION" ] || VERSION="1.2.5"
+[ -n "$VERSION" ] || VERSION="1.3.0"
 SITE="https://kaidevious.github.io/kOS/"
 REPO="https://github.com/KaiDevious/kOS"
+WP=/usr/share/wallpapers/kOS
+STATE="${XDG_CACHE_HOME:-$HOME/.cache}/kos/theme"
+THEME_ORDER="lamplight liquidglass dark light"
+
+accent_rgb(){ case "$1" in
+  amber)  echo 217,154,78 ;;  slate) echo 154,161,173 ;;
+  blue)   echo 74,134,240 ;;  green) echo 46,204,113 ;;
+  purple) echo 155,89,182 ;;  red)   echo 231,76,60 ;;
+  *) echo "" ;; esac; }
+
 cmd="${1:-help}"; [ $# -gt 0 ] && shift
 
 case "$cmd" in
@@ -13,12 +23,54 @@ case "$cmd" in
     else echo "kos: setup not installed (reinstall kos-desktop)"; exit 1; fi ;;
 
   theme)
-    if command -v kos-theme >/dev/null 2>&1; then exec kos-theme "$@"
+    if command -v kos-theme >/dev/null 2>&1; then
+      [ -n "$1" ] && { mkdir -p "$(dirname "$STATE")"; printf '%s\n' "$1" > "$STATE" 2>/dev/null || true; }
+      exec kos-theme "$@"
     else echo "kos: themes not installed yet — run 'sudo kos setup' first"; exit 1; fi ;;
+
+  next)
+    cur="$(cat "$STATE" 2>/dev/null)"; nextt=""; found=0
+    for t in $THEME_ORDER; do
+      [ "$found" = 1 ] && { nextt="$t"; break; }
+      [ "$t" = "$cur" ] && found=1
+    done
+    [ -n "$nextt" ] || nextt="lamplight"
+    mkdir -p "$(dirname "$STATE")"; printf '%s\n' "$nextt" > "$STATE" 2>/dev/null || true
+    exec kos-theme "$nextt" ;;
 
   themes)
     echo "kOS themes:  lamplight  liquidglass  dark  light"
-    echo "apply with:  kos theme <name>" ;;
+    echo "apply with:  kos theme <name>   ·   cycle with:  kos next" ;;
+
+  wallpaper|wp)
+    case "${1:-}" in
+      lamplight|warm)    f="$WP/kos-lamplight.png" ;;
+      liquidglass|glass) f="$WP/kos-liquidglass.png" ;;
+      dark)              f="$WP/kos-dark.png" ;;
+      light)             f="$WP/kos-light.png" ;;
+      *) echo "usage: kos wallpaper lamplight|liquidglass|dark|light"; exit 1 ;;
+    esac
+    if command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
+      plasma-apply-wallpaperimage "$f" >/dev/null 2>&1 && echo "wallpaper -> $1"
+    else echo "kos: plasma-apply-wallpaperimage not found"; exit 1; fi ;;
+
+  accent)
+    a="${1:-}"
+    if [ "$a" = "random" ]; then
+      set -- amber slate blue green purple red
+      a="$(eval echo \${$(( RANDOM % 6 + 1 ))})"
+    fi
+    rgb="$(accent_rgb "$a")"
+    [ -n "$rgb" ] || { echo "usage: kos accent amber|slate|blue|green|purple|red|random"; exit 1; }
+    KW="$(command -v kwriteconfig6 || command -v kwriteconfig5 || true)"
+    [ -n "$KW" ] && "$KW" --file kdeglobals --group General --key AccentColor "$rgb" 2>/dev/null
+    echo "accent -> $a" ;;
+
+  notify)
+    msg="$*"; [ -n "$msg" ] || msg="Hello from kOS"
+    if command -v notify-send >/dev/null 2>&1; then
+      notify-send -a kOS -i io.github.kaidevious.kOS "kOS" "$msg"
+    else echo "kos: notify-send not found"; exit 1; fi ;;
 
   welcome|oobe)
     if command -v kos-oobe >/dev/null 2>&1; then exec kos-oobe --force
@@ -42,6 +94,17 @@ case "$cmd" in
     if command -v fastfetch >/dev/null 2>&1; then exec fastfetch
     else . /etc/os-release 2>/dev/null; echo "$PRETTY_NAME $(uname -m) — kernel $(uname -r)"; fi ;;
 
+  about)
+    . /etc/os-release 2>/dev/null
+    printf '%s\n' \
+      "kOS $VERSION" \
+      "${PRETTY_NAME:-kOS} · $(uname -m) · kernel $(uname -r)" \
+      "Base: Kali Linux · Desktop: KDE Plasma" \
+      "Themes: lamplight · liquidglass · dark · light" \
+      "" \
+      "Website: $SITE" \
+      "GitHub:  $REPO" ;;
+
   version|-v|--version)
     echo "kOS $VERSION" ;;
 
@@ -56,15 +119,20 @@ kOS $VERSION — usage:
                                 liquidglass  cool frosted gray
                                 dark         kOS dark
                                 light        kOS light
+    kos next                  cycle to the next theme
     kos themes                list the themes
+    kos wallpaper <name>      set just the wallpaper
+    kos accent <color>        amber|slate|blue|green|purple|red|random
 
   Apps
     kos welcome               re-run the first-boot welcome wizard
     kos center                open the kOS Control Center
+    kos notify [message]      pop a desktop notification
 
   System
     kos update                update kOS to the latest version
     kos info                  show system info (fastfetch)
+    kos about                 show kOS at a glance
     kos version               show version
 
   Links
