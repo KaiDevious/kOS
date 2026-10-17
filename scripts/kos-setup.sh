@@ -355,6 +355,139 @@ for W in /etc/xdg/autostart/*welcome*.desktop; do
 done
 chown -R "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$UH/.config/autostart" 2>/dev/null || true
 
+GRP="$(id -gn "$U" 2>/dev/null || echo "$U")"
+
+say "Login avatar (kOS logo, not the Kali dragon)"
+AV=/usr/share/kos/kos-logo.png
+if [ -f "$AV" ]; then
+  cp "$AV" "$UH/.face.icon" 2>/dev/null && chown "$U":"$GRP" "$UH/.face.icon"
+  cp "$AV" "$UH/.face"      2>/dev/null && chown "$U":"$GRP" "$UH/.face"
+  mkdir -p /var/lib/AccountsService/icons /var/lib/AccountsService/users
+  cp "$AV" "/var/lib/AccountsService/icons/$U"
+  AU="/var/lib/AccountsService/users/$U"
+  if [ -f "$AU" ] && grep -q '^Icon=' "$AU"; then
+    sed -i "s|^Icon=.*|Icon=/var/lib/AccountsService/icons/$U|" "$AU"
+  elif [ -f "$AU" ]; then
+    printf '\n[User]\nIcon=/var/lib/AccountsService/icons/%s\n' "$U" >> "$AU"
+  else
+    printf '[User]\nIcon=/var/lib/AccountsService/icons/%s\nSystemAccount=false\n' "$U" > "$AU"
+  fi
+fi
+
+say "Konsole: kOS terminal colors"
+mkdir -p /usr/share/konsole
+cat > /usr/share/konsole/kOS.colorscheme <<'CS'
+[Background]
+Color=14,20,32
+[BackgroundFaint]
+Color=14,20,32
+[BackgroundIntense]
+Color=20,28,44
+[Foreground]
+Color=212,222,236
+[ForegroundFaint]
+Color=150,165,188
+[ForegroundIntense]
+Color=240,245,252
+[Color0]
+Color=30,36,48
+[Color0Intense]
+Color=70,80,96
+[Color1]
+Color=231,76,60
+[Color1Intense]
+Color=255,110,96
+[Color2]
+Color=46,204,113
+[Color2Intense]
+Color=94,235,150
+[Color3]
+Color=217,154,78
+[Color3Intense]
+Color=243,201,136
+[Color4]
+Color=74,134,240
+[Color4Intense]
+Color=134,200,255
+[Color5]
+Color=155,89,182
+[Color5Intense]
+Color=190,130,220
+[Color6]
+Color=86,200,220
+[Color6Intense]
+Color=140,225,240
+[Color7]
+Color=212,222,236
+[Color7Intense]
+Color=245,250,255
+[General]
+Blur=false
+ColorRandomization=false
+Description=kOS
+Opacity=1
+Wallpaper=
+CS
+cat > /usr/share/konsole/kOS.profile <<'PF'
+[Appearance]
+ColorScheme=kOS
+[General]
+Name=kOS
+Parent=FALLBACK/
+PF
+mkdir -p "$UH/.config"
+KC="$UH/.config/konsolerc"
+if [ -f "$KC" ] && grep -q '^\[Desktop Entry\]' "$KC"; then
+  grep -q '^DefaultProfile=' "$KC" \
+    && sed -i 's|^DefaultProfile=.*|DefaultProfile=kOS.profile|' "$KC" \
+    || sed -i '/^\[Desktop Entry\]/a DefaultProfile=kOS.profile' "$KC"
+else
+  printf '[Desktop Entry]\nDefaultProfile=kOS.profile\n' >> "$KC"
+fi
+chown "$U":"$GRP" "$KC" 2>/dev/null || true
+
+say "kOS global theme (selectable in System Settings)"
+LNF=/usr/share/plasma/look-and-feel/com.kos.desktop
+mkdir -p "$LNF/contents"
+cat > "$LNF/metadata.json" <<'JSON'
+{
+    "KPlugin": {
+        "Id": "com.kos.desktop",
+        "Name": "kOS",
+        "Category": "Plasma Look and Feel",
+        "License": "GPL-3.0"
+    },
+    "X-Plasma-APIVersion": "2"
+}
+JSON
+cat > "$LNF/contents/defaults" <<'DEF'
+[kdeglobals][General]
+ColorScheme=kOSLamplight
+
+[kdeglobals][KDE]
+widgetStyle=Breeze
+
+[ksplashrc][KSplash]
+Theme=com.kos.splash
+Engine=KSplashQML
+
+[Wallpaper]
+Image=/usr/share/wallpapers/kOS/
+DEF
+[ -f /usr/share/wallpapers/kOS/kos-lamplight.png ] && \
+  cp /usr/share/wallpapers/kOS/kos-lamplight.png "$LNF/contents/preview.png" 2>/dev/null || true
+
+say "Flatpak + Flathub (Discover software store)"
+apt-get install -y flatpak plasma-discover-backend-flatpak >/dev/null 2>&1 || true
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo >/dev/null 2>&1 || true
+
+say "About-this-system branding"
+grep -q '^LOGO=' /etc/os-release \
+  && sed -i 's|^LOGO=.*|LOGO=io.github.kaidevious.kOS|' /etc/os-release \
+  || echo 'LOGO=io.github.kaidevious.kOS' >> /etc/os-release
+grep -q '^HOME_URL=' /etc/os-release || echo 'HOME_URL="https://kaidevious.github.io/kOS/"' >> /etc/os-release
+grep -q '^SUPPORT_URL=' /etc/os-release || echo 'SUPPORT_URL="https://github.com/KaiDevious/kOS/issues"' >> /etc/os-release
+
 say "Apps: Windows (Wine) + Apple file support"
 dpkg --add-architecture i386 >/dev/null 2>&1 || true
 apt-get update >/dev/null 2>&1 || true
