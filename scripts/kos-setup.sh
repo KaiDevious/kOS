@@ -202,6 +202,35 @@ if [ -f "$APPLETS" ] && [ -n "$KW" ]; then
   chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$APPLETS" 2>/dev/null || true
 fi
 
+say "App menu: hide Kali web links, add kOS ones"
+# hide Kali's app-menu web shortcuts (Kali Bugs, Docs, Forums, Tools, ...)
+DFE="$(command -v desktop-file-edit || true)"
+for f in /usr/share/applications/kali-*.desktop; do
+  [ -f "$f" ] || continue
+  if [ -n "$DFE" ]; then
+    "$DFE" --set-key=NoDisplay --set-value=true "$f" 2>/dev/null || true
+  else
+    grep -q '^NoDisplay=' "$f" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' "$f"
+  fi
+done
+# add kOS app-menu entries (mirror the browser's kOS Links)
+koslink(){  # name  url  filename
+  cat > "/usr/share/applications/$3" <<EOF2
+[Desktop Entry]
+Type=Application
+Name=$1
+Exec=xdg-open $2
+Icon=io.github.kaidevious.kOS
+Terminal=false
+Categories=Network;
+EOF2
+}
+koslink "kOS Website" "https://kaidevious.github.io/kOS/"        kos-website.desktop
+koslink "kOS Bugs"    "https://github.com/KaiDevious/kOS/issues" kos-bugs.desktop
+koslink "kOS Docs"    "https://github.com/KaiDevious/kOS#readme" kos-docs.desktop
+koslink "kOS GitHub"  "https://github.com/KaiDevious/kOS"        kos-github.desktop
+update-desktop-database /usr/share/applications >/dev/null 2>&1 || true
+
 say "GRUB boot menu branding"
 cp /etc/default/grub /etc/default/grub.kosbak 2>/dev/null || true
 cp "$ASSETS/splash.png" /usr/share/kos/grub-bg.png 2>/dev/null || true
