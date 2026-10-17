@@ -6,7 +6,7 @@
 #   kos version
 # report the real installed package version (falls back if dpkg can't say)
 VERSION="$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)"
-[ -n "$VERSION" ] || VERSION="1.2.3"
+[ -n "$VERSION" ] || VERSION="1.2.4"
 cmd="${1:-help}"; [ $# -gt 0 ] && shift
 
 case "$cmd" in

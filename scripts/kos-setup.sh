@@ -14,6 +14,10 @@ say(){ echo; echo "==> $*"; }
 
 if [ "$(id -u)" -ne 0 ]; then echo "Run with sudo: sudo bash kos-setup.sh"; exit 1; fi
 
+# remove stale /usr/local/bin copies from early installs — they shadow the
+# package's /usr/bin versions in PATH (this is why 'kos version' lagged behind)
+rm -f /usr/local/bin/kos /usr/local/bin/kos-setup /usr/local/bin/kos-theme 2>/dev/null || true
+
 say "1/8  Naming the OS kOS"
 cp --remove-destination /usr/lib/os-release /etc/os-release
 sed -i 's/^NAME=.*/NAME="kOS"/; s/^PRETTY_NAME=.*/PRETTY_NAME="kOS"/' /etc/os-release
