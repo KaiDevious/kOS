@@ -11,7 +11,7 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.0.9"
+VERSION="1.1.0"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
@@ -51,6 +51,12 @@ if [ -f "$REPO/app/control-center/main.py" ]; then
   install -D -m644 "$REPO/app/control-center/io.github.kaidevious.kOS.desktop" "$T/usr/share/applications/io.github.kaidevious.kOS.desktop"
   install -D -m644 "$REPO/app/control-center/logo.png" "$T/usr/share/kos/kos-logo.png"
   install -D -m644 "$REPO/app/control-center/logo.png" "$T/usr/share/icons/hicolor/256x256/apps/io.github.kaidevious.kOS.png"
+fi
+
+# kOS Welcome — first-boot OOBE wizard (autostarts once on first login)
+if [ -f "$REPO/app/oobe/main.py" ]; then
+  install -D -m755 "$REPO/app/oobe/main.py"       "$T/usr/bin/kos-oobe"
+  install -D -m644 "$REPO/app/oobe/kos-oobe.desktop" "$T/etc/xdg/autostart/kos-oobe.desktop"
 fi
 
 # config-driven notifier: fresh GitHub API (ETag-conditional) + raw fallback + poll handling

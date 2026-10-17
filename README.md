@@ -13,6 +13,7 @@ A custom Linux distribution built on **Kali** with the **KDE Plasma** desktop. I
 - **Has security tools built in.** The Kali tool set (nmap, Wireshark, Burp, Ghidra, and more).
 - **Can send announcements.** A built-in message-of-the-day and pop-up notifications, controlled from one place. ([how it works](https://github.com/KaiDevious/kos-motd-notif-sender))
 - **Four desktop themes.** **Lamplight** (warm, lamplit) and **Liquid Glass** (cool frosted gray), plus classic **Dark** and **Light** — each with a matching wallpaper. Switch live with `kos theme <name>`.
+- **First-boot welcome.** A one-time **kOS Welcome** wizard on first login — greets you and lets you pick your theme in a couple of clicks.
 - **Its own control panel.** The **kOS Control Center** app — a welcome hub and one-click theme switcher, in your app menu.
 - **Looks custom all the way down.** Custom wallpaper, boot screen (GRUB), login screen, and terminal logo.
 - **Small quality-of-life fixes.** No system beep, reliable networking, and a colored terminal.
