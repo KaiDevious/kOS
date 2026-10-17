@@ -11,7 +11,7 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.0.8"
+VERSION="1.0.9"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"

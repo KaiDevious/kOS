@@ -263,6 +263,32 @@ apt-get install -y libimobiledevice-utils usbmuxd ifuse kio-extras \
   ffmpeg gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly 7zip hfsprogs >/dev/null 2>&1 || true
 apt-get install -y kimageformat-plugins >/dev/null 2>&1 || apt-get install -y kimageformatplugins >/dev/null 2>&1 || true
 
+say "Firefox: drop the Kali bookmarks, add kOS"
+# Enterprise policy: no default (Kali) bookmarks for new profiles + kOS bookmarks.
+read -r -d '' KOS_FFPOLICY <<'JSON' || true
+{
+  "policies": {
+    "NoDefaultBookmarks": true,
+    "Bookmarks": [
+      { "Title": "kOS",           "URL": "https://kaidevious.github.io/kOS/",  "Placement": "toolbar" },
+      { "Title": "kOS on GitHub", "URL": "https://github.com/KaiDevious/kOS",   "Placement": "toolbar" }
+    ]
+  }
+}
+JSON
+# write to every place Firefox/Firefox-ESR reads managed policies
+for d in /usr/lib/firefox-esr/distribution /usr/lib/firefox/distribution \
+         /etc/firefox-esr/policies /etc/firefox/policies; do
+  mkdir -p "$d" && printf '%s\n' "$KOS_FFPOLICY" > "$d/policies.json"
+done
+# best-effort: also strip already-created Kali bookmarks from this user's profile
+if command -v sqlite3 >/dev/null 2>&1; then
+  for DB in "$UH"/.mozilla/firefox/*/places.sqlite; do
+    [ -f "$DB" ] || continue
+    sqlite3 "$DB" "DELETE FROM moz_bookmarks WHERE title LIKE 'Kali%' OR title LIKE 'OffSec%' OR title LIKE 'Exploit%';" 2>/dev/null || true
+  done
+fi
+
 echo
 echo "============================================================"
 echo " kOS system setup done. Pick a desktop look with one command:"
