@@ -281,11 +281,19 @@ for d in /usr/lib/firefox-esr/distribution /usr/lib/firefox/distribution \
          /etc/firefox-esr/policies /etc/firefox/policies; do
   mkdir -p "$d" && printf '%s\n' "$KOS_FFPOLICY" > "$d/policies.json"
 done
-# best-effort: also strip already-created Kali bookmarks from this user's profile
+# best-effort: strip already-created Kali bookmarks from this user's profile(s).
+# Catches the "Kali & OffSec Links" folder, everything inside it (NetHunter,
+# VulnHub, Exploit Database, OffSec Training...), and any stray Kali/OffSec items.
 if command -v sqlite3 >/dev/null 2>&1; then
   for DB in "$UH"/.mozilla/firefox/*/places.sqlite; do
     [ -f "$DB" ] || continue
-    sqlite3 "$DB" "DELETE FROM moz_bookmarks WHERE title LIKE 'Kali%' OR title LIKE 'OffSec%' OR title LIKE 'Exploit%';" 2>/dev/null || true
+    sqlite3 "$DB" "
+      DELETE FROM moz_bookmarks WHERE parent IN
+        (SELECT id FROM moz_bookmarks WHERE type=2
+         AND (title LIKE '%Kali%' OR title LIKE '%OffSec%'));
+      DELETE FROM moz_bookmarks WHERE title LIKE '%Kali%' OR title LIKE '%OffSec%'
+        OR title IN ('Exploit Database','NetHunter','VulnHub');
+    " 2>/dev/null || true
   done
 fi
 
