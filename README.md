@@ -74,6 +74,14 @@ The package/setup installs the kOS look, the themes, the Control Center, the ann
 
 A downloadable `kOS.iso` (boot it, click "Install kOS," done — no Kali needed first) is the next milestone. The boot-menu and installer branding for it live in `installer/`. Until it ships, use one of the options above on a Kali base.
 
+### Running in VirtualBox? Fix slow downloads first
+
+If your Kali VM's downloads crawl (kilobytes per second) even on fast internet, it's almost always the **virtual network adapter**, not your connection or the mirror. VirtualBox's default **Intel PRO/1000** NIC has offload bugs that throttle throughput.
+
+**Fix:** VM → **Settings → Network → Adapter 1** → set **Adapter Type** to **Paravirtualized Network (virtio-net)** (keep **Attached to: NAT**, **Cable Connected** checked). Kali has the virtio driver built in. This can take downloads from a few KB/s to tens of MB/s.
+
+Two more VirtualBox speedups worth setting (VM powered off): **Storage → SATA controller → Use Host I/O Cache** on, and **System → Processor → 4+ CPUs**.
+
 ## Using kOS
 
 - **Switch themes:** `kos theme lamplight` · `kos theme liquidglass` · `kos theme dark` · `kos theme light` (or use the Control Center).

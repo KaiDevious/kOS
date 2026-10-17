@@ -767,6 +767,9 @@ sudo bash scripts/kos-setup.sh</code></pre>
     </div>
   </div>
   <div class="note">
+    <strong>Running in VirtualBox?</strong> If downloads crawl at a few KB/s on fast internet, it's the virtual network adapter, not your connection. Set <em>Settings → Network → Adapter 1 → Adapter Type</em> to <strong>Paravirtualized Network (virtio-net)</strong> (keep NAT, Cable Connected on). Downloads jump from KB/s to tens of MB/s. Also worth it: <em>Storage → SATA → Use Host I/O Cache</em> on, and 4+ CPUs.
+  </div>
+  <div class="note">
     kOS is a personal project made for fun and learning. Because it's based on Kali, it includes security tools — only use those on devices and networks you own or have permission to test.
   </div>
 </section>
