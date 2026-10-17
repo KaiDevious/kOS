@@ -11,7 +11,7 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.1.6"
+VERSION="1.1.7"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
@@ -52,6 +52,12 @@ if [ -f "$REPO/app/control-center/main.py" ]; then
   install -D -m644 "$REPO/app/control-center/logo.png" "$T/usr/share/kos/kos-logo.png"
   install -D -m644 "$REPO/app/control-center/logo.png" "$T/usr/share/icons/hicolor/256x256/apps/io.github.kaidevious.kOS.png"
 fi
+
+# distinct icons for the kOS app-menu entries + the Control Center
+for ic in kos-website kos-bugs kos-docs kos-github kos-control-center; do
+  [ -f "$REPO/branding/app-icons/$ic.png" ] && \
+    install -D -m644 "$REPO/branding/app-icons/$ic.png" "$T/usr/share/icons/hicolor/256x256/apps/$ic.png"
+done
 
 # kOS Welcome — first-boot OOBE wizard (autostarts once on first login)
 if [ -f "$REPO/app/oobe/main.py" ]; then

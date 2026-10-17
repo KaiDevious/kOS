@@ -198,6 +198,11 @@ if [ -f "$APPLETS" ] && [ -n "$KW" ]; then
     gargs=""; for g in $(printf '%s' "$grp" | sed 's/^\[//; s/\]$//; s/\]\[/ /g'); do gargs="$gargs --group $g"; done
     sudo -u "$U" $KW --file "$APPLETS" $gargs --group Configuration --group General \
       --key icon /usr/share/icons/hicolor/256x256/apps/kos-menu.png 2>/dev/null || true
+    # default favorites: kOS apps in, Kali out (replaces the stock favorites list)
+    sudo -u "$U" $KW --file "$APPLETS" $gargs --group Configuration --group General \
+      --key favorites "io.github.kaidevious.kOS.desktop,kos-website.desktop,kos-bugs.desktop,kos-docs.desktop,kos-github.desktop,org.kde.dolphin.desktop,firefox-esr.desktop,org.kde.konsole.desktop,systemsettings.desktop" 2>/dev/null || true
+    sudo -u "$U" $KW --file "$APPLETS" $gargs --group Configuration --group General \
+      --key favoritesPortedToKAstats false 2>/dev/null || true
   done
   chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$APPLETS" 2>/dev/null || true
 fi
@@ -214,21 +219,21 @@ for f in /usr/share/applications/kali-*.desktop; do
   fi
 done
 # add kOS app-menu entries (mirror the browser's kOS Links)
-koslink(){  # name  url  filename
+koslink(){  # name  url  filename  icon
   cat > "/usr/share/applications/$3" <<EOF2
 [Desktop Entry]
 Type=Application
 Name=$1
 Exec=xdg-open $2
-Icon=io.github.kaidevious.kOS
+Icon=$4
 Terminal=false
 Categories=Network;
 EOF2
 }
-koslink "kOS Website" "https://kaidevious.github.io/kOS/"        kos-website.desktop
-koslink "kOS Bugs"    "https://github.com/KaiDevious/kOS/issues" kos-bugs.desktop
-koslink "kOS Docs"    "https://github.com/KaiDevious/kOS#readme" kos-docs.desktop
-koslink "kOS GitHub"  "https://github.com/KaiDevious/kOS"        kos-github.desktop
+koslink "kOS Website" "https://kaidevious.github.io/kOS/"        kos-website.desktop kos-website
+koslink "kOS Bugs"    "https://github.com/KaiDevious/kOS/issues" kos-bugs.desktop    kos-bugs
+koslink "kOS Docs"    "https://github.com/KaiDevious/kOS#readme" kos-docs.desktop    kos-docs
+koslink "kOS GitHub"  "https://github.com/KaiDevious/kOS"        kos-github.desktop  kos-github
 update-desktop-database /usr/share/applications >/dev/null 2>&1 || true
 
 say "GRUB boot menu branding"
