@@ -411,28 +411,47 @@ KW="$(command -v kwriteconfig6 || command -v kwriteconfig5 || true)"
 asuser(){ sudo -u "$U" env XDG_RUNTIME_DIR="$RT" \
   DBUS_SESSION_BUS_ADDRESS="unix:path=$RT/bus" "$@"; }
 
+# ordered favorites list — config provides the ORDER, the activity DB provides
+# membership. Keep the two in sync.
+FAVS="io.github.kaidevious.kOS.desktop,kos-website.desktop,kos-bugs.desktop,kos-docs.desktop,kos-github.desktop,org.kde.dolphin.desktop,preferred://browser,org.kde.konsole.desktop,systemsettings.desktop"
+
 if [ -f "$APPLETS" ] && [ -n "$KW" ]; then
-  FAVS="io.github.kaidevious.kOS.desktop,kos-website.desktop,kos-bugs.desktop,kos-docs.desktop,kos-github.desktop,org.kde.dolphin.desktop,firefox-esr.desktop,org.kde.konsole.desktop,systemsettings.desktop"
   awk '/^\[/{hdr=$0} /^plugin=org\.kde\.plasma\.(kickoff|kicker|kickerdash)/{print hdr}' "$APPLETS" | while read -r grp; do
     [ -n "$grp" ] || continue
     gargs=""; for g in $(printf '%s' "$grp" | sed 's/^\[//; s/\]$//; s/\]\[/ /g'); do gargs="$gargs --group $g"; done
     "$KW" --file "$APPLETS" $gargs --group Configuration --group General --key icon /usr/share/icons/hicolor/256x256/apps/kos-menu.png 2>/dev/null || true
     "$KW" --file "$APPLETS" $gargs --group Configuration --group General --key favorites "$FAVS" 2>/dev/null || true
-    "$KW" --file "$APPLETS" $gargs --group Configuration --group General --key favoritesPortedToKAstats false 2>/dev/null || true
+    "$KW" --file "$APPLETS" $gargs --group Configuration --group General --key favoritesPortedToKAstats true 2>/dev/null || true
   done
   chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$APPLETS" 2>/dev/null || true
-
-  # also clear the KActivities favorites store so Kickoff re-imports the config
-  # list cleanly on next login (removes the stock Kali favorites)
-  KADB="$UH/.local/share/kactivitymanagerd/resources/database"
-  if command -v sqlite3 >/dev/null 2>&1 && [ -f "$KADB" ]; then
-    sqlite3 "$KADB" "DELETE FROM ResourceLink WHERE initiatingAgent='org.kde.plasma.favorites.applications';" 2>/dev/null || true
-    chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$KADB" 2>/dev/null || true
-  fi
-
-  # rebuild the app-menu cache so the hidden Kali links + new kOS icons show
-  asuser kbuildsycoca6 >/dev/null 2>&1 || asuser kbuildsycoca5 >/dev/null 2>&1 || true
 fi
+
+# Favorites actually live in the KActivities store (ResourceLink table), NOT in
+# appletsrc. Write them there directly: drop the Kali favorites, add the kOS set.
+# Stop kactivitymanagerd first (SIGKILL, no flush) so it can't overwrite us.
+apt-get install -y sqlite3 >/dev/null 2>&1 || true
+KADB="$UH/.local/share/kactivitymanagerd/resources/database"
+if command -v sqlite3 >/dev/null 2>&1 && [ -f "$KADB" ]; then
+  pkill -9 -u "$U" -x kactivitymanagerd 2>/dev/null || true; sleep 1
+  AG='org.kde.plasma.favorites.applications'
+  sqlite3 "$KADB" "DELETE FROM ResourceLink WHERE initiatingAgent='$AG';" 2>/dev/null || true
+  for r in \
+    applications:io.github.kaidevious.kOS.desktop \
+    applications:kos-website.desktop \
+    applications:kos-bugs.desktop \
+    applications:kos-docs.desktop \
+    applications:kos-github.desktop \
+    applications:org.kde.dolphin.desktop \
+    preferred://browser \
+    applications:org.kde.konsole.desktop \
+    applications:systemsettings.desktop ; do
+    sqlite3 "$KADB" "INSERT OR IGNORE INTO ResourceLink (usedActivity,initiatingAgent,targettedResource) VALUES (':global','$AG','$r');" 2>/dev/null || true
+  done
+  chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$KADB" 2>/dev/null || true
+fi
+
+# rebuild the app-menu cache so the hidden Kali links + new kOS icons show
+asuser kbuildsycoca6 >/dev/null 2>&1 || asuser kbuildsycoca5 >/dev/null 2>&1 || true
 
 echo
 echo "============================================================"
