@@ -12,7 +12,9 @@ A custom Linux distribution built on **Kali** with the **KDE Plasma** desktop. I
 - **Works with Apple files.** Opens iPhone photos (HEIC) and common Mac file types.
 - **Has security tools built in.** The Kali tool set (nmap, Wireshark, Burp, Ghidra, and more).
 - **Can send announcements.** A built-in message-of-the-day and pop-up notifications, controlled from one place. ([how it works](https://github.com/KaiDevious/kos-motd-notif-sender))
-- **Looks custom.** Dark and light themes, plus a matching wallpaper, boot screen, login screen, and terminal logo.
+- **Four desktop themes.** **Lamplight** (warm, lamplit) and **Liquid Glass** (cool frosted gray), plus classic **Dark** and **Light** — each with a matching wallpaper. Switch live with `kos theme <name>`.
+- **Its own control panel.** The **kOS Control Center** app — a welcome hub and one-click theme switcher, in your app menu.
+- **Looks custom all the way down.** Custom wallpaper, boot screen (GRUB), login screen, and terminal logo.
 - **Small quality-of-life fixes.** No system beep, reliable networking, and a colored terminal.
 
 ## Screenshots
@@ -25,23 +27,28 @@ A custom Linux distribution built on **Kali** with the **KDE Plasma** desktop. I
 
 Pick whichever fits you.
 
-### Option 1 — Install the full kOS (easiest)
+### Option 1 — Add the kOS apt repo (easiest)
 
-1. Download `kOS.iso` from the [Releases](https://github.com/KaiDevious/kOS/releases) page.
-2. Install it like any Linux ISO, in a virtual machine or on a real computer.
+On a Kali install with the **KDE Plasma** desktop, add the kOS repository once, then install and set up:
 
-### Option 2 — Add kOS to a Kali you already have
+```bash
+echo 'deb [trusted=yes] https://kaidevious.github.io/kOS/apt ./' | sudo tee /etc/apt/sources.list.d/kos.list
+sudo apt update
+sudo apt install kos-desktop
+sudo kos setup
+```
 
-1. Install Kali and choose the **KDE Plasma** desktop.
-2. Download `kos-desktop_1.0.1.deb` from [Releases](https://github.com/KaiDevious/kOS/releases) (or the `packaging/` folder).
-3. Open a terminal where the file is and run:
+Reboot. After that, `sudo apt update && sudo apt upgrade` keeps kOS up to date like any other package.
+
+### Option 2 — Install a single .deb by hand
+
+1. Download the latest `kos-desktop_*.deb` from [Releases](https://github.com/KaiDevious/kOS/releases) (or the `packaging/` folder).
+2. Open a terminal where the file is and run:
    ```bash
-   sudo apt install ./kos-desktop_1.0.1.deb
-   sudo kos-setup
+   sudo apt install ./kos-desktop_*.deb
+   sudo kos setup
    ```
-4. Reboot.
-
-That's it. The package installs the kOS look, the announcement tools, and the apps it needs. To change the announcement settings later, edit `/etc/kos/config`.
+3. Reboot.
 
 ### Option 3 — Build it yourself from the source
 
@@ -53,16 +60,29 @@ That's it. The package installs the kOS look, the announcement tools, and the ap
    sudo bash scripts/kos-setup.sh
    ```
 3. Reboot.
-4. Finish the look: right-click the desktop to set the wallpaper, then open System Settings to pick a Breeze Dark or Light theme and set the accent color.
+
+The package/setup installs the kOS look, the themes, the Control Center, the announcement tools, and the apps it needs. To change the announcement settings later, edit `/etc/kos/config`.
+
+### A full bootable ISO
+
+A downloadable `kOS.iso` (boot it, click "Install kOS," done — no Kali needed first) is the next milestone. The boot-menu and installer branding for it live in `installer/`. Until it ships, use one of the options above on a Kali base.
+
+## Using kOS
+
+- **Switch themes:** `kos theme lamplight` · `kos theme liquidglass` · `kos theme dark` · `kos theme light` (or use the Control Center).
+- **List what's available:** `kos themes`
+- **See the command:** `kos help`
+- **Open the control panel:** launch **kOS Control Center** from your app menu.
 
 ## What's in this repo
 
 ```
-branding/    wallpapers, logos, boot screen, login screen, terminal logo
-scripts/     kos-setup.sh — applies the whole kOS look and tweaks
-installer/   the installer and boot-menu branding used to build the ISO
-packaging/   kos-desktop.deb — branding, announcement tools, and kos-setup in one package
-docs/        notes on how kOS is built
+app/         kOS Control Center (GTK4 app) — native + Flatpak
+branding/    wallpapers, logos, boot screen, login screen, KDE themes
+scripts/     kos (command), kos-setup.sh (applies the whole kOS look)
+installer/   boot-menu and installer branding for building the ISO
+packaging/   build scripts + the kos-desktop .deb and apt repo
+docs/        the kOS website and build notes
 ```
 
 ## Credits
