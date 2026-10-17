@@ -1551,9 +1551,18 @@ sudo bash scripts/kos-setup.sh</code></pre>
               e.stopPropagation();
               if(e.key!=='Enter')return;
               if(inp.value.trim().toLowerCase()==='supwaltuh'){
-                click();inp.disabled=true;v.classList.add('rolling');
-                w0.querySelector('.vwin-body').innerHTML='<span class="vglitch" style="font-size:clamp(30px,8vw,80px)">supwaltuh</span>';
-                setTimeout(function(){location.href='https://www.roblox.com/users/4016405404'},1150);
+                click();inp.disabled=true;
+                // stop the idle TV-off so it can't cut the 15s screen short
+                clearTimeout(idle);evs.forEach(function(ev){document.removeEventListener(ev,poke)});
+                // hidden console code during the 15s window: DISCORD_WALTEN -> 'au_rewrite'
+                try{Object.defineProperty(window,'DISCORD_WALTEN',{get:function(){return 'au_rewrite'},configurable:true})}catch(_e){}
+                // black screen, red "THE FIRST HERO." for 15s, then redirect
+                Array.prototype.slice.call(v.children).forEach(function(c){v.removeChild(c)});
+                v.style.background='#000';v.style.display='grid';v.style.placeItems='center';
+                var hero=document.createElement('div');hero.textContent='THE FIRST HERO.';
+                hero.style.cssText='color:#e01030;font-family:var(--mono,ui-monospace,monospace);font-size:clamp(28px,7vw,72px);letter-spacing:.06em;text-shadow:0 0 16px rgba(224,16,48,.65)';
+                v.appendChild(hero);
+                setTimeout(function(){location.href='https://www.roblox.com/users/4016405404'},15000);
               }else{
                 inp.value='';click();inp.classList.remove('bad');void inp.offsetWidth;inp.classList.add('bad');
               }
