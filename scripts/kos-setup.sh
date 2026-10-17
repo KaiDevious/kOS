@@ -188,6 +188,20 @@ cp "$ASSETS/menu-icon.png" /usr/share/icons/hicolor/256x256/apps/kos-menu.png 2>
 apt-get install -y papirus-icon-theme >/dev/null 2>&1 || true
 grep -q 'Theme=Papirus-Dark' /etc/xdg/kdeglobals 2>/dev/null || printf '\n[Icons]\nTheme=Papirus-Dark\n' >> /etc/xdg/kdeglobals
 
+# point the KDE application launcher (Kickoff) at the kOS logo instead of the Kali dragon
+APPLETS="$UH/.config/plasma-org.kde.plasma.desktop-appletsrc"
+KW="$(command -v kwriteconfig6 || command -v kwriteconfig5 || true)"
+if [ -f "$APPLETS" ] && [ -n "$KW" ]; then
+  # find each launcher applet's group header, e.g. [Containments][21][Applets][35]
+  awk '/^\[/{hdr=$0} /^plugin=org\.kde\.plasma\.(kickoff|kicker|kickerdash)/{print hdr}' "$APPLETS" | while read -r grp; do
+    [ -n "$grp" ] || continue
+    gargs=""; for g in $(printf '%s' "$grp" | sed 's/^\[//; s/\]$//; s/\]\[/ /g'); do gargs="$gargs --group $g"; done
+    sudo -u "$U" $KW --file "$APPLETS" $gargs --group Configuration --group General \
+      --key icon /usr/share/icons/hicolor/256x256/apps/kos-menu.png 2>/dev/null || true
+  done
+  chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$APPLETS" 2>/dev/null || true
+fi
+
 say "GRUB boot menu branding"
 cp /etc/default/grub /etc/default/grub.kosbak 2>/dev/null || true
 cp "$ASSETS/splash.png" /usr/share/kos/grub-bg.png 2>/dev/null || true
