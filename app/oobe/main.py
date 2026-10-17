@@ -9,10 +9,12 @@ import os
 import sys
 import re
 import json
+import hashlib
 import platform
 import threading
 import subprocess
 import urllib.request
+from datetime import datetime
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -177,6 +179,10 @@ def gather_diag(theme=None):
             text=True, stderr=subprocess.DEVNULL).strip() or VERSION
     except Exception:
         d["kOS"] = VERSION
+    # anonymous, stable dedupe id — a hash of machine-id, NOT the id itself
+    mid = (_read_file("/etc/machine-id").strip()
+           or _read_file("/var/lib/dbus/machine-id").strip())
+    d["id"] = hashlib.sha256(mid.encode()).hexdigest()[:12] if mid else "unknown"
     d["kernel"] = platform.release()
     d["arch"] = platform.machine()
     d["desktop"] = os.environ.get("XDG_CURRENT_DESKTOP", "")
@@ -186,6 +192,10 @@ def gather_diag(theme=None):
     d["cores"] = str(ci.count("processor") or (os.cpu_count() or ""))
     mm = re.search(r"MemTotal:\s*(\d+)", _read_file("/proc/meminfo"))
     d["ram"] = (str(round(int(mm.group(1)) / 1048576, 1)) + " GB" if mm else "unknown")
+    up = _read_file("/proc/uptime").split()
+    if up:
+        s = int(float(up[0]))
+        d["uptime"] = "%dh %dm" % (s // 3600, (s % 3600) // 60)
     try:
         lp = subprocess.check_output(["sh", "-c", "lspci | grep -i vga"],
                                      text=True, stderr=subprocess.DEVNULL).strip()
@@ -200,6 +210,7 @@ def gather_diag(theme=None):
     d["locale"] = os.environ.get("LANG", "")
     if theme:
         d["theme"] = theme
+    d["time"] = datetime.now().strftime("%Y-%m-%d %H:%M")
     return d
 
 
