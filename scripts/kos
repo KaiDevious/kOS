@@ -2,7 +2,7 @@
 # kOS — umbrella command. Dispatches to the kOS tools.
 # report the real installed package version (falls back if dpkg can't say)
 VERSION="$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)"
-[ -n "$VERSION" ] || VERSION="1.2.11"
+[ -n "$VERSION" ] || VERSION="1.3.0"
 SITE="https://kaidevious.github.io/kOS/"
 REPO="https://github.com/KaiDevious/kOS"
 WP=/usr/share/wallpapers/kOS
