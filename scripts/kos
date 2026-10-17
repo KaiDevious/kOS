@@ -4,7 +4,9 @@
 #   kos theme <name>               lamplight | liquidglass | dark | light
 #   kos themes                     list available themes
 #   kos version
-VERSION="1.0.2"
+# report the real installed package version (falls back if dpkg can't say)
+VERSION="$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)"
+[ -n "$VERSION" ] || VERSION="1.2.3"
 cmd="${1:-help}"; [ $# -gt 0 ] && shift
 
 case "$cmd" in
