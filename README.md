@@ -29,14 +29,20 @@ Pick whichever fits you.
 
 ### Option 1 — Add the kOS apt repo (easiest)
 
-On a Kali install with the **KDE Plasma** desktop, add the kOS repository once, then install and set up:
+On a Kali install with the **KDE Plasma** desktop, add the kOS signing key and repository once, then install and set up:
 
 ```bash
-echo 'deb [trusted=yes] https://kaidevious.github.io/kOS/apt ./' | sudo tee /etc/apt/sources.list.d/kos.list
+sudo mkdir -p /usr/share/keyrings
+sudo curl -fsSL https://kaidevious.github.io/kOS/apt/kos-archive-keyring.gpg \
+  -o /usr/share/keyrings/kos-archive-keyring.gpg
+echo 'deb [signed-by=/usr/share/keyrings/kos-archive-keyring.gpg] https://kaidevious.github.io/kOS/apt ./' \
+  | sudo tee /etc/apt/sources.list.d/kos.list
 sudo apt update
 sudo apt install kos-desktop
 sudo kos setup
 ```
+
+The repository is GPG-signed, so apt verifies every package came from kOS — no `[trusted=yes]` needed.
 
 Reboot. After that, `sudo apt update && sudo apt upgrade` keeps kOS up to date like any other package.
 

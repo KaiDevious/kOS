@@ -750,8 +750,9 @@
     <div class="step">
       <div class="n">Option 2</div>
       <h3>Add kOS to Kali</h3>
-      <p>On Kali with KDE, add the kOS repo and install:</p>
-      <pre><code>echo 'deb [trusted=yes] https://kaidevious.github.io/kOS/apt ./' | sudo tee /etc/apt/sources.list.d/kos.list
+      <p>On Kali with KDE, add the kOS signing key and repo, then install:</p>
+      <pre><code>sudo curl -fsSL https://kaidevious.github.io/kOS/apt/kos-archive-keyring.gpg -o /usr/share/keyrings/kos-archive-keyring.gpg
+echo 'deb [signed-by=/usr/share/keyrings/kos-archive-keyring.gpg] https://kaidevious.github.io/kOS/apt ./' | sudo tee /etc/apt/sources.list.d/kos.list
 sudo apt update
 sudo apt install kos-desktop
 sudo kos setup</code></pre>

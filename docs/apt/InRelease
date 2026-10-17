@@ -1,0 +1,34 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Origin: kOS
+Label: kOS
+Suite: stable
+Codename: kos
+Architectures: all
+Components: main
+Description: kOS desktop suite apt repository
+Date: Sat, 17 Oct 2026 00:15:03 GMT
+MD5Sum:
+ edb050f70691bb51a2df23518aef75f7              777 Packages
+ 43896a7660db08aec106269eee6520d9              551 Packages.gz
+SHA256:
+ 8ffe823d25cc15a0ce5bf2f49ceb24f92f169cc45cb9b2e14c26346e6eeef53f              777 Packages
+ 456c45ff93590535f065554c635b3db53ac7c52231b2ec391e091275cbc5ec2a              551 Packages.gz
+-----BEGIN PGP SIGNATURE-----
+
+iQJYBAEBCgBCFiEEViuyPXVJF/6lB9rKbpbqKTfLp5cFAmrSvgckHGthaWRldmlv
+dXNAdXNlcnMubm9yZXBseS5naXRodWIuY29tAAoJEG6W6ik3y6eXOikQAIR9rpVH
+tJCyi6Hx4kN8w85Jw1N6SLOs99pK91Y1SAqh5HE649ljk4tDKfHKd9WIKrDsM3cZ
+TpDHVMpYrLXiLLfEPHNHLELTo+1B4gu1nqoe5oLT58/LgL7QDX8Agv2OdXC0ujys
+EAIsNmJ4Q6izDlhiavS3svtoB5/4wqPvCKg0YDndgZwXN89X+iHKq1WINkBegnqk
+BaMvJvq04nInfZcuuSdEKkhsUiHfYCJvxSXUQ1/vi9VVy6+hgR1O19zUcRzoTucG
+Gd5rKMHd1sK5Fq0DQUO4LsbwZ4oN6d0bbJ9HJWIXKJR2FLmQGEJvQX8Mc+puycyq
+q+N+2QG/+CxiStU1A2vb2ri/kYnHA4Ivjj83aTJY8lhZDUUjweJncz1keIOXB86V
+2RpsBmT4QjCHMcqaUuA3Le0EcYTAMdlUlYmoWKrHfdR8SRk35T02kDRzSZniDDjn
+W9IaMjmpxXmgx+X32H/Cof6u15l2/MigmPDEKH/gOIi6r33mVlgkcqGBcup7ZDtH
+7WuFNebFGelUQszK7ULsKF4r2e0Y6Hu1yd1M8cOpOtcoQM1ISd8ciwri3FkPZFmv
+NlbsREbFyfg+8RMkf0D6phingAalnETaYJuviweu9i1Upj55ejVjfM5pk63nnOcF
+R/vHJWidcHaIohCfDYPOMQGYVNwFq4k9JU3i
+=YERv
+-----END PGP SIGNATURE-----
