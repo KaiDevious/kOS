@@ -188,24 +188,9 @@ cp "$ASSETS/menu-icon.png" /usr/share/icons/hicolor/256x256/apps/kos-menu.png 2>
 apt-get install -y papirus-icon-theme >/dev/null 2>&1 || true
 grep -q 'Theme=Papirus-Dark' /etc/xdg/kdeglobals 2>/dev/null || printf '\n[Icons]\nTheme=Papirus-Dark\n' >> /etc/xdg/kdeglobals
 
-# point the KDE application launcher (Kickoff) at the kOS logo instead of the Kali dragon
-APPLETS="$UH/.config/plasma-org.kde.plasma.desktop-appletsrc"
-KW="$(command -v kwriteconfig6 || command -v kwriteconfig5 || true)"
-if [ -f "$APPLETS" ] && [ -n "$KW" ]; then
-  # find each launcher applet's group header, e.g. [Containments][21][Applets][35]
-  awk '/^\[/{hdr=$0} /^plugin=org\.kde\.plasma\.(kickoff|kicker|kickerdash)/{print hdr}' "$APPLETS" | while read -r grp; do
-    [ -n "$grp" ] || continue
-    gargs=""; for g in $(printf '%s' "$grp" | sed 's/^\[//; s/\]$//; s/\]\[/ /g'); do gargs="$gargs --group $g"; done
-    sudo -u "$U" $KW --file "$APPLETS" $gargs --group Configuration --group General \
-      --key icon /usr/share/icons/hicolor/256x256/apps/kos-menu.png 2>/dev/null || true
-    # default favorites: kOS apps in, Kali out (replaces the stock favorites list)
-    sudo -u "$U" $KW --file "$APPLETS" $gargs --group Configuration --group General \
-      --key favorites "io.github.kaidevious.kOS.desktop,kos-website.desktop,kos-bugs.desktop,kos-docs.desktop,kos-github.desktop,org.kde.dolphin.desktop,firefox-esr.desktop,org.kde.konsole.desktop,systemsettings.desktop" 2>/dev/null || true
-    sudo -u "$U" $KW --file "$APPLETS" $gargs --group Configuration --group General \
-      --key favoritesPortedToKAstats false 2>/dev/null || true
-  done
-  chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$APPLETS" 2>/dev/null || true
-fi
+# NOTE: the launcher icon + favorites are applied at the END of setup, with
+# Plasma stopped, so the live session can't overwrite them (see "Apply the
+# kOS desktop layout").
 
 say "App menu: hide Kali web links, add kOS ones"
 # hide Kali's app-menu web shortcuts (Kali Bugs, Docs, Forums, Tools, ...)
@@ -412,6 +397,45 @@ if command -v sqlite3 >/dev/null 2>&1; then
         OR title IN ('Exploit Database','NetHunter','VulnHub');
     " 2>/dev/null || true
   done
+fi
+
+say "Apply the kOS desktop layout (launcher icon + favorites)"
+# Done LAST, with Plasma stopped, so the running session can't overwrite the
+# config. Rebuild the menu cache and restart the shell so it all takes effect now.
+KOS_UID="$(id -u "$U" 2>/dev/null || echo 0)"
+RT="/run/user/$KOS_UID"
+APPLETS="$UH/.config/plasma-org.kde.plasma.desktop-appletsrc"
+KW="$(command -v kwriteconfig6 || command -v kwriteconfig5 || true)"
+asuser(){ sudo -u "$U" env XDG_RUNTIME_DIR="$RT" \
+  DBUS_SESSION_BUS_ADDRESS="unix:path=$RT/bus" \
+  WAYLAND_DISPLAY="wayland-0" DISPLAY=":0" "$@"; }
+
+if [ -f "$APPLETS" ] && [ -n "$KW" ]; then
+  # was plasmashell running for this user? if so, stop it hard (no config flush)
+  WAS_RUNNING=0
+  if pgrep -u "$U" -x plasmashell >/dev/null 2>&1; then WAS_RUNNING=1; fi
+  [ "$WAS_RUNNING" = 1 ] && { pkill -9 -u "$U" -x plasmashell 2>/dev/null || true; sleep 1; }
+
+  FAVS="io.github.kaidevious.kOS.desktop,kos-website.desktop,kos-bugs.desktop,kos-docs.desktop,kos-github.desktop,org.kde.dolphin.desktop,firefox-esr.desktop,org.kde.konsole.desktop,systemsettings.desktop"
+  awk '/^\[/{hdr=$0} /^plugin=org\.kde\.plasma\.(kickoff|kicker|kickerdash)/{print hdr}' "$APPLETS" | while read -r grp; do
+    [ -n "$grp" ] || continue
+    gargs=""; for g in $(printf '%s' "$grp" | sed 's/^\[//; s/\]$//; s/\]\[/ /g'); do gargs="$gargs --group $g"; done
+    "$KW" --file "$APPLETS" $gargs --group Configuration --group General --key icon /usr/share/icons/hicolor/256x256/apps/kos-menu.png 2>/dev/null || true
+    "$KW" --file "$APPLETS" $gargs --group Configuration --group General --key favorites "$FAVS" 2>/dev/null || true
+    "$KW" --file "$APPLETS" $gargs --group Configuration --group General --key favoritesPortedToKAstats false 2>/dev/null || true
+  done
+  chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$APPLETS" 2>/dev/null || true
+
+  # rebuild the app-menu cache so hidden Kali entries + new kOS icons show now
+  asuser kbuildsycoca6 >/dev/null 2>&1 || asuser kbuildsycoca5 >/dev/null 2>&1 || true
+
+  # restart the shell so it re-imports favorites and the new icon
+  if [ "$WAS_RUNNING" = 1 ]; then
+    asuser kstart plasmashell >/dev/null 2>&1 \
+      || asuser kstart6 plasmashell >/dev/null 2>&1 \
+      || (asuser nohup plasmashell >/dev/null 2>&1 &) \
+      || true
+  fi
 fi
 
 echo
