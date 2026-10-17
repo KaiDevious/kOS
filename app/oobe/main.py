@@ -7,7 +7,12 @@ Guard file: ~/.config/kos/oobe-done
 """
 import os
 import sys
+import re
+import json
+import platform
+import threading
 import subprocess
+import urllib.request
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -144,6 +149,79 @@ def set_hostname(name):
         pass
 
 
+# ---------- diagnostics (opt-in) ----------
+def _read_file(path):
+    try:
+        with open(path) as f:
+            return f.read()
+    except Exception:
+        return ""
+
+
+def read_diag_url():
+    """Discord webhook (or any POST endpoint) from /etc/kos/config: DIAG_URL=..."""
+    for line in _read_file("/etc/kos/config").splitlines():
+        line = line.strip()
+        if line.startswith("DIAG_URL"):
+            v = line.split("=", 1)[1].strip().strip('"').strip("'")
+            return v
+    return ""
+
+
+def gather_diag(theme=None):
+    """Non-personal system info only — no files, usernames, or IPs."""
+    d = {}
+    try:
+        d["kOS"] = subprocess.check_output(
+            ["dpkg-query", "-W", "-f=${Version}", "kos-desktop"],
+            text=True, stderr=subprocess.DEVNULL).strip() or VERSION
+    except Exception:
+        d["kOS"] = VERSION
+    d["kernel"] = platform.release()
+    d["arch"] = platform.machine()
+    d["desktop"] = os.environ.get("XDG_CURRENT_DESKTOP", "")
+    ci = _read_file("/proc/cpuinfo")
+    m = re.search(r"model name\s*:\s*(.+)", ci)
+    d["cpu"] = (m.group(1).strip() if m else "unknown")
+    d["cores"] = str(ci.count("processor") or (os.cpu_count() or ""))
+    mm = re.search(r"MemTotal:\s*(\d+)", _read_file("/proc/meminfo"))
+    d["ram"] = (str(round(int(mm.group(1)) / 1048576, 1)) + " GB" if mm else "unknown")
+    try:
+        lp = subprocess.check_output(["sh", "-c", "lspci | grep -i vga"],
+                                     text=True, stderr=subprocess.DEVNULL).strip()
+        d["gpu"] = lp.split(":")[-1].strip() if lp else "unknown"
+    except Exception:
+        d["gpu"] = "unknown"
+    try:
+        d["virt"] = subprocess.check_output(["systemd-detect-virt"],
+                                            text=True, stderr=subprocess.DEVNULL).strip()
+    except Exception:
+        d["virt"] = "unknown"
+    d["locale"] = os.environ.get("LANG", "")
+    if theme:
+        d["theme"] = theme
+    return d
+
+
+def send_diag(url, data, cb):
+    """POST a Discord-webhook-style JSON message off the UI thread."""
+    def work():
+        ok, msg = False, ""
+        try:
+            lines = "\n".join("%-9s %s" % (k + ":", v) for k, v in data.items())
+            payload = json.dumps(
+                {"content": "**kOS diagnostics**\n```\n" + lines + "\n```"}).encode()
+            req = urllib.request.Request(
+                url, data=payload,
+                headers={"Content-Type": "application/json", "User-Agent": "kOS"})
+            urllib.request.urlopen(req, timeout=10)
+            ok = True
+        except Exception as e:
+            msg = str(e)
+        GLib.idle_add(cb, ok, msg)
+    threading.Thread(target=work, daemon=True).start()
+
+
 # ---------- UI ----------
 class Welcome(Adw.ApplicationWindow):
     def __init__(self, app):
@@ -152,9 +230,13 @@ class Welcome(Adw.ApplicationWindow):
         self.set_resizable(False)
         self.name_row = None
         self.host_row = None
+        self.chosen_theme = None
+        self.diag_sent = False
 
+        self.toasts = Adw.ToastOverlay()
+        self.set_content(self.toasts)
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.set_content(root)
+        self.toasts.set_child(root)
         root.append(Adw.HeaderBar(show_end_title_buttons=False,
                                   show_start_title_buttons=False))
 
@@ -163,7 +245,7 @@ class Welcome(Adw.ApplicationWindow):
         for page in (self._page_welcome(), self._page_identity(),
                      self._page_theme(), self._page_accent(),
                      self._page_wallpaper(), self._page_behavior(),
-                     self._page_done()):
+                     self._page_diagnostics(), self._page_done()):
             self.carousel.append(page)
         root.append(self.carousel)
 
@@ -326,6 +408,48 @@ class Welcome(Adw.ApplicationWindow):
         box.append(grp)
         return box
 
+    def _page_diagnostics(self):
+        box = self._titled(
+            "Help improve kOS",
+            "Optional — send a one-time diagnostics report to the developer.")
+        grp = Adw.PreferencesGroup()
+        self.diag_switch = Adw.SwitchRow(
+            title="Send diagnostics",
+            subtitle="kOS version, kernel, desktop, CPU/GPU/RAM, VM, locale, "
+                     "theme. No files, usernames, or personal info.")
+        grp.add(self.diag_switch)
+        box.append(grp)
+        self.diag_btn = Gtk.Button(label="Send report now")
+        self.diag_btn.add_css_class("pill")
+        self.diag_btn.set_halign(Gtk.Align.CENTER)
+        self.diag_btn.set_margin_top(6)
+        self.diag_btn.connect("clicked", self._send_diag)
+        box.append(self.diag_btn)
+        return box
+
+    def _send_diag(self, _b):
+        if not self.diag_switch.get_active():
+            self._toast("Turn on “Send diagnostics” first.")
+            return
+        url = read_diag_url()
+        if not url:
+            self._toast("No diagnostics endpoint is configured.")
+            return
+        self.diag_btn.set_sensitive(False)
+        self.diag_btn.set_label("Sending…")
+        send_diag(url, gather_diag(self.chosen_theme), self._diag_done)
+
+    def _diag_done(self, ok, _msg):
+        self.diag_sent = ok
+        self.diag_btn.set_sensitive(True)
+        self.diag_btn.set_label("Sent ✓" if ok else "Send report now")
+        self._toast("Diagnostics sent — thanks!" if ok
+                    else "Couldn't send diagnostics.")
+        return False
+
+    def _toast(self, text):
+        self.toasts.add_toast(Adw.Toast(title=text, timeout=2))
+
     def _page_done(self):
         box = self._centered()
         check = Gtk.Image.new_from_icon_name("emblem-ok-symbolic")
@@ -356,6 +480,7 @@ class Welcome(Adw.ApplicationWindow):
     # --- behavior ---
     def _pick_theme(self, btn, key):
         if btn.get_active():
+            self.chosen_theme = key
             apply_theme(key)
 
     def _pick_wp(self, btn, path):
@@ -402,6 +527,23 @@ class Welcome(Adw.ApplicationWindow):
             hn = self.host_row.get_text().strip()
             if hn:
                 set_hostname(hn)
+        # opted into diagnostics but never pressed Send -> send once, synchronously
+        # (the app is about to exit, so a background thread wouldn't survive)
+        if getattr(self, "diag_switch", None) and self.diag_switch.get_active() \
+                and not self.diag_sent:
+            url = read_diag_url()
+            if url:
+                try:
+                    data = gather_diag(self.chosen_theme)
+                    lines = "\n".join("%-9s %s" % (k + ":", v) for k, v in data.items())
+                    payload = json.dumps(
+                        {"content": "**kOS diagnostics**\n```\n" + lines + "\n```"}).encode()
+                    req = urllib.request.Request(
+                        url, data=payload,
+                        headers={"Content-Type": "application/json", "User-Agent": "kOS"})
+                    urllib.request.urlopen(req, timeout=8)
+                except Exception:
+                    pass
         mark_done()
         self.close()
 

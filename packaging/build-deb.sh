@@ -11,7 +11,7 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.1.3"
+VERSION="1.1.4"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
@@ -91,12 +91,16 @@ EOF
 chmod 755 "$T/usr/local/bin/kos-notify"
 
 # broadcast config (conffile)
+# DIAG_URL is the opt-in diagnostics webhook. It is NEVER hardcoded in the repo —
+# set it at build time:  KOS_DIAG_URL="https://discord.com/api/webhooks/..." ./build-deb.sh
+# (left blank here, so the public source carries no webhook).
 cat > "$T/etc/kos/config" <<EOF
 # kOS broadcast config
 BASE_URL="$SENDER_RAW"
 API_URL="$SENDER_API"
 SITE="$SITE"
 NAME="kOS"
+DIAG_URL="${KOS_DIAG_URL:-}"
 EOF
 
 # --- build with xz (fall back to gzip); never zstd ---
