@@ -404,22 +404,14 @@ if command -v sqlite3 >/dev/null 2>&1; then
 fi
 
 say "Apply the kOS desktop layout (launcher icon + favorites)"
-# Done LAST, with Plasma stopped, so the running session can't overwrite the
-# config. Rebuild the menu cache and restart the shell so it all takes effect now.
 KOS_UID="$(id -u "$U" 2>/dev/null || echo 0)"
 RT="/run/user/$KOS_UID"
 APPLETS="$UH/.config/plasma-org.kde.plasma.desktop-appletsrc"
 KW="$(command -v kwriteconfig6 || command -v kwriteconfig5 || true)"
 asuser(){ sudo -u "$U" env XDG_RUNTIME_DIR="$RT" \
-  DBUS_SESSION_BUS_ADDRESS="unix:path=$RT/bus" \
-  WAYLAND_DISPLAY="wayland-0" DISPLAY=":0" "$@"; }
+  DBUS_SESSION_BUS_ADDRESS="unix:path=$RT/bus" "$@"; }
 
 if [ -f "$APPLETS" ] && [ -n "$KW" ]; then
-  # was plasmashell running for this user? if so, stop it hard (no config flush)
-  WAS_RUNNING=0
-  if pgrep -u "$U" -x plasmashell >/dev/null 2>&1; then WAS_RUNNING=1; fi
-  [ "$WAS_RUNNING" = 1 ] && { pkill -9 -u "$U" -x plasmashell 2>/dev/null || true; sleep 1; }
-
   FAVS="io.github.kaidevious.kOS.desktop,kos-website.desktop,kos-bugs.desktop,kos-docs.desktop,kos-github.desktop,org.kde.dolphin.desktop,firefox-esr.desktop,org.kde.konsole.desktop,systemsettings.desktop"
   awk '/^\[/{hdr=$0} /^plugin=org\.kde\.plasma\.(kickoff|kicker|kickerdash)/{print hdr}' "$APPLETS" | while read -r grp; do
     [ -n "$grp" ] || continue
@@ -430,16 +422,16 @@ if [ -f "$APPLETS" ] && [ -n "$KW" ]; then
   done
   chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$APPLETS" 2>/dev/null || true
 
-  # rebuild the app-menu cache so hidden Kali entries + new kOS icons show now
-  asuser kbuildsycoca6 >/dev/null 2>&1 || asuser kbuildsycoca5 >/dev/null 2>&1 || true
-
-  # restart the shell so it re-imports favorites and the new icon
-  if [ "$WAS_RUNNING" = 1 ]; then
-    asuser kstart plasmashell >/dev/null 2>&1 \
-      || asuser kstart6 plasmashell >/dev/null 2>&1 \
-      || (asuser nohup plasmashell >/dev/null 2>&1 &) \
-      || true
+  # also clear the KActivities favorites store so Kickoff re-imports the config
+  # list cleanly on next login (removes the stock Kali favorites)
+  KADB="$UH/.local/share/kactivitymanagerd/resources/database"
+  if command -v sqlite3 >/dev/null 2>&1 && [ -f "$KADB" ]; then
+    sqlite3 "$KADB" "DELETE FROM ResourceLink WHERE initiatingAgent='org.kde.plasma.favorites.applications';" 2>/dev/null || true
+    chown "$U":"$(id -gn "$U" 2>/dev/null || echo "$U")" "$KADB" 2>/dev/null || true
   fi
+
+  # rebuild the app-menu cache so the hidden Kali links + new kOS icons show
+  asuser kbuildsycoca6 >/dev/null 2>&1 || asuser kbuildsycoca5 >/dev/null 2>&1 || true
 fi
 
 echo
