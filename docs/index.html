@@ -879,10 +879,13 @@ sudo bash scripts/kos-setup.sh</code></pre>
       <div class="log">
         <div class="day">Oct 17</div>
         <ul>
-          <li><b>kOS 1.1 — first-boot welcome.</b> A one-time setup wizard greets you on first login: name, theme, accent color, wallpaper, and behavior (single-click, snappy mode, night light).</li>
-          <li><b>Signed apt repo.</b> The repository is now GPG-signed — install without <code>[trusted=yes]</code>, apt verifies every package.</li>
-          <li><b>De-Kali'd browser.</b> Setup clears the default Kali bookmarks and drops in a tidy <b>kOS Links</b> folder (site, GitHub, docs, issues).</li>
-          <li><b>One-line install.</b> <code>curl -fsSL …/apt/install.sh | sudo bash</code> adds the key + repo for you.</li>
+          <li><b>kOS 1.4 “Kodiak” — build codenames.</b> Releases now carry a K-creature codename (Kestrel → Kodiak). <code>kos about</code> shows the version and codename together.</li>
+          <li><b>First boot that finishes itself.</b> The welcome wizard now ends with a one-click, admin-approved <b>Apply kOS setup</b> step — so a fresh install sets up the whole look on its own, and you can't skip past it until it's done.</li>
+          <li><b>kOS Control Center, rebuilt.</b> Five tabs — Home, Themes, Appearance (wallpaper + accent), Tweaks, and System — with a built-in update check (“Click Update to go to kOS …”), one-click update, Repair &amp; Clean, Send Diagnostics, and an About window.</li>
+          <li><b>More <code>kos</code> commands.</b> <code>kos doctor</code> auto-repairs the install, plus <code>kos clean</code>, <code>kos backup</code>/<code>restore</code>, <code>accent</code>, <code>auto</code> day/night, <code>weather</code>, <code>matrix</code>, <code>party</code>, and more.</li>
+          <li><b>No Kali leftovers.</b> Favorites, app menu, bookmarks, GRUB, splash, login screen, and avatar are all kOS now — the security tools stay.</li>
+          <li><b>Signed apt repo + one-line install.</b> The repo is GPG-signed (no <code>[trusted=yes]</code>), and <code>curl -fsSL …/apt/install.sh | sudo bash</code> adds the key + repo for you.</li>
+          <li><b>Optional diagnostics.</b> An opt-in, non-personal system report in the wizard and Control Center — off by default.</li>
         </ul>
         <div class="day">Oct 11</div>
         <ul>
