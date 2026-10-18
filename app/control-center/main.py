@@ -392,7 +392,9 @@ class Window(Adw.ApplicationWindow):
         r2 = Adw.ActionRow(title="Update kOS", subtitle="Opens a terminal to install the latest")
         self.update_btn = Gtk.Button(label="Update", valign=Gtk.Align.CENTER)
         self.update_btn.add_css_class("flat")
-        self.update_btn.connect("clicked", lambda *_: run_host(["konsole", "-e", "bash", "-c", "kos update; echo; read -p 'Press Enter to close…'"]))
+        self.update_btn.connect("clicked", lambda *_: run_host(["konsole", "-e", "bash", "-c",
+            "echo 'Updating kOS…'; sudo apt update && sudo apt install --only-upgrade -y kos-desktop; "
+            "echo; echo 'Done.'; read -p 'Press Enter to close…'"]))
         r2.add_suffix(self.update_btn)
         upd.add(r2)
         page.add(upd)
