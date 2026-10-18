@@ -243,6 +243,8 @@ class Welcome(Adw.ApplicationWindow):
         self.host_row = None
         self.chosen_theme = None
         self.diag_sent = False
+        self.setup_done = False
+        self.apply_index = 6   # the mandatory "Apply kOS setup" page
 
         self.toasts = Adw.ToastOverlay()
         self.set_content(self.toasts)
@@ -256,6 +258,7 @@ class Welcome(Adw.ApplicationWindow):
         for page in (self._page_welcome(), self._page_identity(),
                      self._page_theme(), self._page_accent(),
                      self._page_wallpaper(), self._page_behavior(),
+                     self._page_apply(),
                      self._page_diagnostics(), self._page_done()):
             self.carousel.append(page)
         root.append(self.carousel)
@@ -488,6 +491,97 @@ class Welcome(Adw.ApplicationWindow):
         box.append(links)
         return box
 
+    # --- mandatory apply (runs kos-setup via pkexec) ---
+    def _page_apply(self):
+        box = self._titled(
+            "Finish setting up kOS",
+            "This applies the full kOS look and system tweaks. It needs admin "
+            "access and can take a few minutes. You can't continue until it's done.")
+        box.set_margin_top(8)
+
+        self.apply_btn = Gtk.Button(label="Apply kOS setup")
+        self.apply_btn.add_css_class("suggested-action")
+        self.apply_btn.add_css_class("pill")
+        self.apply_btn.set_halign(Gtk.Align.CENTER)
+        self.apply_btn.connect("clicked", self._run_setup)
+        box.append(self.apply_btn)
+
+        self.apply_spin = Gtk.Spinner(halign=Gtk.Align.CENTER)
+        self.apply_spin.set_visible(False)
+        box.append(self.apply_spin)
+
+        self.apply_status = Gtk.Label(label="", wrap=True,
+                                      justify=Gtk.Justification.CENTER)
+        self.apply_status.add_css_class("dim-label")
+        box.append(self.apply_status)
+
+        self.apply_log = Gtk.TextView(editable=False, monospace=True,
+                                      cursor_visible=False)
+        self.apply_log.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.apply_log_sw = Gtk.ScrolledWindow(vexpand=True)
+        self.apply_log_sw.set_min_content_height(170)
+        self.apply_log_sw.set_child(self.apply_log)
+        self.apply_log_sw.add_css_class("card")
+        self.apply_log_sw.set_margin_start(24)
+        self.apply_log_sw.set_margin_end(24)
+        self.apply_log_sw.set_margin_top(8)
+        self.apply_log_sw.set_visible(False)
+        box.append(self.apply_log_sw)
+        return box
+
+    def _run_setup(self, _b):
+        self.apply_btn.set_sensitive(False)
+        self.apply_btn.set_label("Applying…")
+        self.apply_spin.set_visible(True)
+        self.apply_spin.start()
+        self.apply_log_sw.set_visible(True)
+        self.apply_status.set_label(
+            "Running kOS setup — approve the admin prompt if it appears.")
+        self.apply_log.get_buffer().set_text("")
+        threading.Thread(target=self._setup_worker, daemon=True).start()
+
+    def _setup_worker(self):
+        rc = 1
+        try:
+            exe = "/usr/bin/kos-setup" if os.path.exists("/usr/bin/kos-setup") else "kos-setup"
+            p = subprocess.Popen(["pkexec", exe],
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                 text=True, bufsize=1)
+            for line in iter(p.stdout.readline, ""):
+                GLib.idle_add(self._log_append, line)
+            p.stdout.close()
+            rc = p.wait()
+        except Exception as e:
+            GLib.idle_add(self._log_append, "\nError: %s\n" % e)
+        GLib.idle_add(self._setup_finished, rc)
+
+    def _log_append(self, text):
+        buf = self.apply_log.get_buffer()
+        buf.insert(buf.get_end_iter(), text)
+        mark = buf.create_mark(None, buf.get_end_iter(), False)
+        self.apply_log.scroll_mark_onscreen(mark)
+        return False
+
+    def _setup_finished(self, rc):
+        self.apply_spin.stop()
+        self.apply_spin.set_visible(False)
+        if rc == 0:
+            self.setup_done = True
+            self.apply_btn.set_label("Applied ✓")
+            self.apply_status.set_label("kOS setup complete — click Next to continue.")
+            self.next_btn.set_sensitive(True)
+            self._toast("kOS applied!")
+        else:
+            self.apply_btn.set_sensitive(True)
+            self.apply_btn.set_label("Retry — Apply kOS setup")
+            if rc in (126, 127):
+                self.apply_status.set_label(
+                    "Admin approval was cancelled. Click to try again.")
+            else:
+                self.apply_status.set_label(
+                    "Setup didn't finish (code %d). You can retry." % rc)
+        return False
+
     # --- behavior ---
     def _pick_theme(self, btn, key):
         if btn.get_active():
@@ -517,6 +611,8 @@ class Welcome(Adw.ApplicationWindow):
         last = self.carousel.get_n_pages() - 1
         self.back_btn.set_sensitive(index > 0)
         self.next_btn.set_label("Finish" if index == last else "Next")
+        # mandatory setup gate: can't move past the Apply page until it finishes
+        self.next_btn.set_sensitive(not (index == self.apply_index and not self.setup_done))
         # personalize the finish greeting
         if index == last and self.name_row is not None:
             nm = self.name_row.get_text().strip()

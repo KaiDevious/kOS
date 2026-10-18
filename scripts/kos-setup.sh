@@ -7,7 +7,11 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ASSETS="$HERE"; [ -d "$HERE/../branding" ] && ASSETS="$(cd "$HERE/../branding" && pwd)"
 # installed via the .deb, kos-setup lives in /usr/local/bin and assets ship in /usr/share/kos
 [ ! -f "$ASSETS/kos-ascii.txt" ] && [ -f /usr/share/kos/kos-ascii.txt ] && ASSETS=/usr/share/kos
-U="${SUDO_USER:-$USER}"
+# resolve the real target user whether launched via sudo OR pkexec (the OOBE
+# uses pkexec, which sets PKEXEC_UID instead of SUDO_USER)
+U="${SUDO_USER:-}"
+[ -z "$U" ] && [ -n "$PKEXEC_UID" ] && U="$(getent passwd "$PKEXEC_UID" | cut -d: -f1)"
+[ -z "$U" ] && U="$USER"
 UH="$(getent passwd "$U" | cut -d: -f6)"
 REPO="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 say(){ echo; echo "==> $*"; }
@@ -177,7 +181,7 @@ NoDisplay=true
 EOF4
 # apply live now: stop any running notifier and relaunch the new one in the user's session
 pkill -f /usr/local/bin/kos-notify 2>/dev/null || true
-KOS_U="${SUDO_USER:-$USER}"; KOS_UID="$(id -u "$KOS_U" 2>/dev/null || true)"
+KOS_U="$U"; KOS_UID="$(id -u "$KOS_U" 2>/dev/null || true)"
 if [ -n "$KOS_UID" ] && [ -S "/run/user/$KOS_UID/bus" ]; then
   rm -f "/home/$KOS_U/.cache/kos-last-notify" "/home/$KOS_U/.cache/kos-notify-etag" 2>/dev/null || true
   setsid sudo -u "$KOS_U" env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$KOS_UID/bus" \

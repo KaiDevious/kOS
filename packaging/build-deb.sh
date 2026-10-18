@@ -11,7 +11,7 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.4.0"
+VERSION="1.4.1"
 # build codename (K-creature series): Kestrel -> Kodiak -> Kraken -> Kinkajou -> Kakapo -> Kudu ...
 CODENAME="Kodiak"
 DEB="kos-desktop_${VERSION}.deb"
