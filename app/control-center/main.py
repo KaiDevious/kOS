@@ -191,6 +191,9 @@ class Window(Adw.ApplicationWindow):
         self.stack.add_titled_with_icon(self._tweaks(), "tweaks", "Tweaks", "preferences-system-symbolic")
         self.stack.add_titled_with_icon(self._system(), "system", "System", "computer-symbolic")
 
+        # auto-check for updates on open so the Update button unlocks itself
+        GLib.idle_add(self._check_updates, None)
+
     # --- Home ---
     def _welcome(self):
         page = Adw.PreferencesPage()
@@ -389,9 +392,11 @@ class Window(Adw.ApplicationWindow):
         self.check_btn.connect("clicked", self._check_updates)
         self.check_row.add_suffix(self.check_btn)
         upd.add(self.check_row)
-        r2 = Adw.ActionRow(title="Update kOS", subtitle="Opens a terminal to install the latest")
+        r2 = Adw.ActionRow(title="Update kOS", subtitle="Check for updates first")
+        self.update_row = r2
         self.update_btn = Gtk.Button(label="Update", valign=Gtk.Align.CENTER)
         self.update_btn.add_css_class("flat")
+        self.update_btn.set_sensitive(False)   # locked until a check finds an update
         self.update_btn.connect("clicked", lambda *_: run_host(["konsole", "-e", "bash", "-c",
             "echo 'Updating kOS…'; sudo apt update && sudo apt install --only-upgrade -y kos-desktop; "
             "echo; echo 'Done.'; read -p 'Press Enter to close…'"]))
@@ -446,13 +451,21 @@ class Window(Adw.ApplicationWindow):
         self.check_btn.set_sensitive(True)
         if not res.get("ok"):
             self.check_row.set_subtitle("Couldn't check — are you online?")
+            self.update_btn.set_sensitive(False)
+            self.update_btn.remove_css_class("suggested-action")
+            self.update_row.set_subtitle("Check for updates first")
         elif res.get("newer"):
             rc, rv = res.get("rc"), res.get("rv")
             tag = (f'kOS "{rc}" {rv}' if rc else f"kOS {rv}")
             self.check_row.set_subtitle(f"Click Update to go to {tag}")
+            self.update_btn.set_sensitive(True)
             self.update_btn.add_css_class("suggested-action")
+            self.update_row.set_subtitle(f"Ready: {tag}")
         else:
             self.check_row.set_subtitle("No updates available.")
+            self.update_btn.set_sensitive(False)
+            self.update_btn.remove_css_class("suggested-action")
+            self.update_row.set_subtitle("You're up to date")
         return False
 
     # --- send diagnostics (with a 5-minute cooldown) ---
