@@ -182,6 +182,10 @@ class Window(Adw.ApplicationWindow):
         header = Adw.HeaderBar()
         switcher = Adw.ViewSwitcher(stack=self.stack, policy=Adw.ViewSwitcherPolicy.WIDE)
         header.set_title_widget(switcher)
+        about_btn = Gtk.Button(icon_name="help-about-symbolic")
+        about_btn.set_tooltip_text("About kOS")
+        about_btn.connect("clicked", self._about)
+        header.pack_end(about_btn)
         root.append(header)
         root.append(self.stack)
 
@@ -404,6 +408,25 @@ class Window(Adw.ApplicationWindow):
         upd.add(r2)
         page.add(upd)
 
+        maint = Adw.PreferencesGroup(title="Maintenance")
+        mr1 = Adw.ActionRow(title="Repair install",
+                            subtitle="Check & auto-fix common problems")
+        mb1 = Gtk.Button(label="Repair", valign=Gtk.Align.CENTER)
+        mb1.add_css_class("flat")
+        mb1.connect("clicked", lambda *_: run_host(["konsole", "-e", "bash", "-c",
+            "sudo kos doctor; echo; read -p 'Press Enter to close…'"]))
+        mr1.add_suffix(mb1)
+        maint.add(mr1)
+        mr2 = Adw.ActionRow(title="Free up space",
+                            subtitle="Remove junk packages and clear caches")
+        mb2 = Gtk.Button(label="Clean", valign=Gtk.Align.CENTER)
+        mb2.add_css_class("flat")
+        mb2.connect("clicked", lambda *_: run_host(["konsole", "-e", "bash", "-c",
+            "kos clean; echo; read -p 'Press Enter to close…'"]))
+        mr2.add_suffix(mb2)
+        maint.add(mr2)
+        page.add(maint)
+
         links = Adw.PreferencesGroup(title="Links")
         for label, uri in (("Website", SITE), ("GitHub", REPO),
                            ("Report a bug", REPO + "/issues"), ("Docs", REPO + "#readme")):
@@ -513,6 +536,28 @@ class Window(Adw.ApplicationWindow):
         self.diag_btn.set_sensitive(False)
         self.diag_btn.set_label("Wait %d:%02d" % (remain // 60, remain % 60))
         return True
+
+    def _about(self, _b=None):
+        ver, code = kos_info()
+        verstr = (f'{ver} "{code}"' if ver and code else (ver or (f'"{code}"' if code else VERSION)))
+        try:
+            about = Adw.AboutWindow(
+                transient_for=self, application_name="kOS",
+                application_icon=APP_ID, version=verstr,
+                developer_name="Kai", website=SITE, issue_url=REPO + "/issues",
+                comments="Kali Linux, reimagined with the KDE Plasma desktop.",
+                license_type=Gtk.License.GPL_3_0,
+                copyright="Based on Kali Linux and KDE Plasma.")
+            logo = find_logo()
+            if logo:
+                about.set_property("application-icon", APP_ID)
+            about.present()
+        except Exception:
+            dlg = Gtk.MessageDialog(transient_for=self, modal=True,
+                                    text="kOS", secondary_text=f"Version {verstr}\n{SITE}")
+            dlg.add_button("Close", Gtk.ResponseType.CLOSE)
+            dlg.connect("response", lambda d, _r: d.destroy())
+            dlg.present()
 
     def _open(self, uri):
         Gtk.UriLauncher(uri=uri).launch(self, None, None)

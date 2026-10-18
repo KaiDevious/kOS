@@ -18,6 +18,13 @@ if [ "$(id -u)" -ne 0 ]; then echo "Run with sudo: sudo bash kos-setup.sh"; exit
 # package's /usr/bin versions in PATH (this is why 'kos version' lagged behind)
 rm -f /usr/local/bin/kos /usr/local/bin/kos-setup /usr/local/bin/kos-theme 2>/dev/null || true
 
+# ...and make sure that shadow can never come back: an apt hook that clears it
+# after every apt run, as long as the real /usr/bin/kos is present.
+cat > /etc/apt/apt.conf.d/99kos-no-shadow <<'EOF'
+// kOS: keep the stale /usr/local/bin/kos shadow from hijacking the command
+DPkg::Post-Invoke { "if [ -e /usr/bin/kos ] && [ -e /usr/local/bin/kos ]; then rm -f /usr/local/bin/kos; fi"; };
+EOF
+
 say "1/8  Naming the OS kOS"
 CODE="$(cat /usr/share/kos/codename 2>/dev/null)"
 PRETTY="kOS${CODE:+ $CODE}"

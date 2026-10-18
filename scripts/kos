@@ -2,7 +2,7 @@
 # kOS — umbrella command. Dispatches to the kOS tools.
 # report the real installed package version (falls back if dpkg can't say)
 VERSION="$(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)"
-[ -n "$VERSION" ] || VERSION="1.3.8"
+[ -n "$VERSION" ] || VERSION="1.4.0"
 CODE="$(cat /usr/share/kos/codename 2>/dev/null)"
 SITE="https://kaidevious.github.io/kOS/"
 REPO="https://github.com/KaiDevious/kOS"
@@ -127,6 +127,52 @@ case "$cmd" in
     sudo apt update && sudo apt install --only-upgrade -y kos-desktop
     echo "Done. You're on kOS $(dpkg-query -W -f='${Version}' kos-desktop 2>/dev/null)." ;;
 
+  doctor|fix)
+    echo "kOS doctor — checking your install…"; echo
+    issues=0
+    # 1) stale shadow copy that hijacks the 'kos' command
+    if [ -e /usr/local/bin/kos ]; then
+      echo "  • stale /usr/local/bin/kos found (it shadows the real command)"
+      if [ "$(id -u)" = 0 ] || rm -f /usr/local/bin/kos 2>/dev/null; then
+        [ -e /usr/local/bin/kos ] && rm -f /usr/local/bin/kos 2>/dev/null
+        if [ -e /usr/local/bin/kos ]; then echo "    run: sudo kos doctor"; issues=$((issues+1))
+        else echo "    fixed — removed it"; hash -r 2>/dev/null || true; fi
+      else echo "    run: sudo kos doctor"; issues=$((issues+1)); fi
+    else echo "  • command path clean"; fi
+    # 2) installed vs repo
+    latest=$(curl -fsS --max-time 8 "$SITE/apt/kos-latest.json?t=$(date +%s)" 2>/dev/null)
+    rv=$(printf '%s' "$latest" | grep -o '"version"[^,}]*' | cut -d'"' -f4)
+    rc=$(printf '%s' "$latest" | grep -o '"codename"[^,}]*' | cut -d'"' -f4)
+    if [ -n "$rv" ] && dpkg --compare-versions "$rv" gt "$VERSION" 2>/dev/null; then
+      echo "  • update available: kOS${rc:+ \"$rc\"} $rv (you have $VERSION)"
+      echo "    update with Control Center or:  kos update"
+    else echo "  • up to date ($VERSION${CODE:+ \"$CODE\"})"; fi
+    # 3) assets
+    [ -d "$WP" ] && echo "  • wallpapers installed" || { echo "  • wallpapers missing — run: sudo kos setup"; issues=$((issues+1)); }
+    command -v kos-control-center >/dev/null 2>&1 && echo "  • Control Center installed" || { echo "  • Control Center missing — reinstall kos-desktop"; issues=$((issues+1)); }
+    command -v kos-theme >/dev/null 2>&1 && echo "  • theme engine installed" || { echo "  • theme engine missing — run: sudo kos setup"; issues=$((issues+1)); }
+    echo
+    [ "$issues" = 0 ] && echo "All good." || echo "$issues thing(s) above need attention." ;;
+
+  clean)
+    echo "Cleaning up kOS…"
+    sudo apt-get autoremove -y && sudo apt-get autoclean -y
+    command -v journalctl >/dev/null 2>&1 && sudo journalctl --vacuum-size=200M 2>/dev/null || true
+    rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/thumbnails"/* 2>/dev/null || true
+    echo "Done." ;;
+
+  backup)
+    out="${1:-$HOME/kos-look-backup.tar.gz}"
+    tar -czf "$out" -C "$HOME" \
+      .cache/kos/theme .config/kdeglobals .local/share/konsole 2>/dev/null
+    echo "Saved your kOS look to:  $out"
+    echo "Restore it later with:   kos restore $out" ;;
+
+  restore)
+    in="${1:-$HOME/kos-look-backup.tar.gz}"
+    [ -f "$in" ] || { echo "no backup at $in  (make one with: kos backup)"; exit 1; }
+    tar -xzf "$in" -C "$HOME" && echo "Restored from $in — log out and back in to see everything." ;;
+
   site|web)      exec xdg-open "$SITE" ;;
   github|repo)   exec xdg-open "$REPO" ;;
   bugs|issues)   exec xdg-open "$REPO/issues" ;;
@@ -183,6 +229,12 @@ kOS${CODE:+ "$CODE"} (build $VERSION) — usage:
     kos info                  show system info (fastfetch)
     kos about                 show kOS at a glance
     kos version               show version
+
+  Maintenance
+    kos doctor                check & auto-repair your install
+    kos clean                 free up space (autoremove + caches)
+    kos backup [file]         save your kOS look to a file
+    kos restore [file]        restore your kOS look from a backup
 
   Links
     kos site                  open the kOS website

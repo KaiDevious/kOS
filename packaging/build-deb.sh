@@ -11,9 +11,9 @@
 set -e
 cd "$(dirname "$0")"
 REPO=".."
-VERSION="1.3.8"
+VERSION="1.4.0"
 # build codename (K-creature series): Kestrel -> Kodiak -> Kraken -> Kinkajou -> Kakapo -> Kudu ...
-CODENAME="Kestrel"
+CODENAME="Kodiak"
 DEB="kos-desktop_${VERSION}.deb"
 SENDER_RAW="https://raw.githubusercontent.com/KaiDevious/kos-motd-notif-sender/refs/heads/main"
 SENDER_API="https://api.github.com/repos/KaiDevious/kos-motd-notif-sender/contents"
