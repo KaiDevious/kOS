@@ -17,7 +17,6 @@ A custom Linux distribution built on **Kali** with the **KDE Plasma** desktop. I
   - **Liquid Glass** — cool frosted gray
   - **Dark** — classic kOS dark
   - **Light** — clean kOS light
-  - *(the [kOS website](https://kaidevious.github.io/kOS/) also carries a fifth look, **Limbus** — engraved gold on black — as a web-only theme)*
 - **First-boot welcome.** A one-time **kOS Welcome** wizard on first login — picks your name, theme, accent color, wallpaper, and a few behavior options in a couple of clicks.
 - **Its own control panel.** The **kOS Control Center** app — a welcome hub and one-click theme switcher, in your app menu.
 - **No Kali leftovers.** The app launcher, favorites, and browser bookmarks are all kOS — the Kali web links and branding are swapped out, the security tools stay.
