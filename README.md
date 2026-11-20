@@ -1,4 +1,4 @@
-im still lazy so thanks claude for writing this (i cant believe this is an ACTUAL apt package...)
+im still lazy so thanks claude for writing this readmeh (i cant believe this is an ACTUAL apt package...)
 
 # kOS
 
