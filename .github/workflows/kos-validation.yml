@@ -1,0 +1,52 @@
+name: kOS package validation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/**"
+      - "packaging/**"
+      - "docs/apt/**"
+      - ".github/workflows/kos-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    container:
+      image: kalilinux/kali-rolling:latest
+    steps:
+      - name: Install validation tools
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates git bash shellcheck dpkg-dev
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Check shell syntax
+        run: |
+          bash -n scripts/kos-setup.sh
+          bash -n scripts/kos
+          bash -n docs/apt/install.sh
+          bash -n packaging/build-deb.sh
+          bash -n packaging/build-apt-repo.sh
+      - name: Run ShellCheck on installer scripts
+        run: |
+          shellcheck -x -S warning scripts/kos-setup.sh scripts/kos docs/apt/install.sh packaging/build-deb.sh packaging/build-apt-repo.sh
+      - name: Inspect published package
+        run: |
+          test -s packaging/kos-desktop_1.4.1.deb
+          dpkg-deb --info packaging/kos-desktop_1.4.1.deb
+          dpkg-deb --contents packaging/kos-desktop_1.4.1.deb
+          dpkg-deb --field packaging/kos-desktop_1.4.1.deb Package Version Architecture Depends
+      - name: Install package in clean Kali container
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y ./packaging/kos-desktop_1.4.1.deb
+          dpkg-query -W -f='${Status} ${Version}\n' kos-desktop
+      - name: Check installed command entry points
+        run: |
+          command -v kos
+          kos help
